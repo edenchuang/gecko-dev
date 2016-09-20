@@ -52,11 +52,14 @@ function completion_function() {
 }
 
 // Helper function to send MouseEvent with different parameters
-function sendMouseEvent(int_win, elemId, mouseEventType, params) {
+function sendMouseEvent(int_win, elemId, pointerId, mouseEventType, params) {
   var elem = int_win.document.getElementById(elemId);
   if(!!elem) {
     var rect = elem.getBoundingClientRect();
-    var eventObj = {type: mouseEventType};
+    var eventObj = {
+      type: mouseEventType,
+      id: pointerId
+    };
     if(params && "button" in params)
       eventObj.button = params.button;
     if(params && "inputSource" in params)
@@ -71,11 +74,16 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
 }
 
 // Helper function to send TouchEvent with different parameters
-function sendTouchEvent(int_win, elemId, touchEventType, params) {
+// TODO: Support multiple touch points to test more features such as
+// PointerEvent.isPrimary and pinch-zoom.
+function sendTouchEvent(int_win, elemId, pointerId, touchEventType, params) {
   var elem = int_win.document.getElementById(elemId);
   if(!!elem) {
     var rect = elem.getBoundingClientRect();
-    var eventObj = {type: touchEventType};
+    var eventObj = {
+      type: touchEventType,
+      id: pointerId
+    };
     console.log(elemId, eventObj);
     synthesizeTouch(elem, rect.width/4, rect.height/2, eventObj, int_win);
   } else {

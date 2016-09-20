@@ -356,6 +356,8 @@ function synthesizeMouseAtPoint(left, top, aEvent, aWindow = window)
   var defaultPrevented = false;
 
   if (utils) {
+    var id = ("id" in aEvent) ? aEvent.id :
+                                _EU_Ci.nsIDOMMouseEvent.MOZ_POINTERID_DEFAULT;
     var button = computeButton(aEvent);
     var clickCount = aEvent.clickCount || 1;
     var modifiers = _parseModifiers(aEvent, aWindow);
@@ -373,15 +375,15 @@ function synthesizeMouseAtPoint(left, top, aEvent, aWindow = window)
                                               pressure, inputSource,
                                               isDOMEventSynthesized,
                                               isWidgetEventSynthesized,
-                                              buttons);
+                                              buttons, id);
     }
     else {
       utils.sendMouseEvent("mousedown", left, top, button, clickCount, modifiers,
                            false, pressure, inputSource, isDOMEventSynthesized,
-                           isWidgetEventSynthesized, buttons);
+                           isWidgetEventSynthesized, buttons, id);
       utils.sendMouseEvent("mouseup", left, top, button, clickCount, modifiers,
                            false, pressure, inputSource, isDOMEventSynthesized,
-                           isWidgetEventSynthesized, buttons);
+                           isWidgetEventSynthesized, buttons, id);
     }
   }
 
