@@ -19,12 +19,12 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
       }
       function executeTest(int_win) {
         const WM_VSCROLL = 0x0115;
-        sendTouchEvent(int_win, "target0", "touchstart");
-        sendTouchEvent(int_win, "target0", "touchmove");
-        sendTouchEvent(int_win, "target0", "touchend");
-        //sendTouchEvent(int_win, "target0", "touchstart");
-        //sendTouchEvent(int_win, "target0", "touchmove");
-        //sendTouchEvent(int_win, "target0", "touchend");
+        sendTouchEvent(int_win, "target0", 10, "touchstart");
+        sendTouchEvent(int_win, "target0", 10, "touchmove");
+        sendTouchEvent(int_win, "target0", 10, "touchend");
+        //sendTouchEvent(int_win, "target0", 10, "touchstart");
+        //sendTouchEvent(int_win, "target0", 10, "touchmove");
+        //sendTouchEvent(int_win, "target0", 10, "touchend");
         var utils = _getDOMWindowUtils(int_win);
         var target0 = int_win.document.getElementById("target0");
         utils.sendNativeMouseScrollEvent(target0.getBoundingClientRect().left + 5,

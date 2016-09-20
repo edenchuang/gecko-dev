@@ -19,8 +19,8 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
       }
       function executeTest(int_win) {
         sendMouseEvent(int_win, "target0", 0, "mousemove");
-        sendTouchEvent(int_win, "target1", "touchstart");
-        sendTouchEvent(int_win, "target1", "touchend");
+        sendTouchEvent(int_win, "target1", 10, "touchstart");
+        sendTouchEvent(int_win, "target1", 10, "touchend");
         sendMouseEvent(int_win, "target0", 0, "mousemove");
         sendMouseEvent(int_win, "done", 0,    "mousedown", {button:0});
         sendMouseEvent(int_win, "done", 0,    "mouseup",   {button:0});

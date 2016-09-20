@@ -18,8 +18,8 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         iframe.src = "pointerevent_pointertype_touch-manual.html";
       }
       function executeTest(int_win) {
-        sendTouchEvent(int_win, "target0", "touchstart");
-        sendTouchEvent(int_win, "target0", "touchend");
+        sendTouchEvent(int_win, "target0", 10, "touchstart");
+        sendTouchEvent(int_win, "target0", 10, "touchend");
       }
     </script>
   </head>
