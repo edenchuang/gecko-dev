@@ -14,6 +14,24 @@ var All_Pointer_Events = [
 // TA: 1.1, 1.2, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12, 1.13
 function check_PointerEvent(event) {
     var pointerTestName = event.pointerType + ' ' + event.type;
+
+    test(function () {
+        var pointerId;
+        switch(event.pointerType){
+            case "mouse":
+                pointerId = 0;
+                break;
+            case "pen":
+                pointerId = 1;
+                break;
+            case "touch":
+                pointerId = 10;
+                break;
+        }
+
+        assert_true(event.pointerId == pointerId, "Incorrect pointerId");
+    }, "Incorrect pointerId for " + event.pointerType + " " + event.pointerId);
+
     test(function () {
         assert_true(event instanceof PointerEvent, "event is a PointerEvent event");
     }, pointerTestName + " event is a PointerEvent event");
