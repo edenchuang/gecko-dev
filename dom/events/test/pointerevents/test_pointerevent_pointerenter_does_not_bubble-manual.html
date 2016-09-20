@@ -18,8 +18,8 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         iframe.src = "pointerevent_pointerenter_does_not_bubble-manual.html";
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "target0", "mousemove");
-        sendMouseEvent(int_win, "log",     "mousemove");
+        sendMouseEvent(int_win, "target0", 0, "mousemove");
+        sendMouseEvent(int_win, "log", 0,     "mousemove");
       }
     </script>
   </head>

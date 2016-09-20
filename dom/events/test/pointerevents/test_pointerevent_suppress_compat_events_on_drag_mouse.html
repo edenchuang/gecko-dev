@@ -18,14 +18,14 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         iframe.src = "pointerevent_suppress_compat_events_on_drag_mouse.html";
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "target0", "mousedown", {button:0});
-        sendMouseEvent(int_win, "target0", "mousemove", {button:0});
-        sendMouseEvent(int_win, "target0", "mouseup",   {button:0});
-        sendMouseEvent(int_win, "target1", "mousedown", {button:0});
-        sendMouseEvent(int_win, "target1", "mousemove", {button:0});
-        sendMouseEvent(int_win, "target1", "mouseup",   {button:0});
-        sendMouseEvent(int_win, "done",    "mousedown", {button:0});
-        sendMouseEvent(int_win, "done",    "mouseup",   {button:0});
+        sendMouseEvent(int_win, "target0", 0, "mousedown", {button:0});
+        sendMouseEvent(int_win, "target0", 0, "mousemove", {button:0});
+        sendMouseEvent(int_win, "target0", 0, "mouseup",   {button:0});
+        sendMouseEvent(int_win, "target1", 0, "mousedown", {button:0});
+        sendMouseEvent(int_win, "target1", 0, "mousemove", {button:0});
+        sendMouseEvent(int_win, "target1", 0, "mouseup",   {button:0});
+        sendMouseEvent(int_win, "done", 0,    "mousedown", {button:0});
+        sendMouseEvent(int_win, "done", 0,    "mouseup",   {button:0});
       }
     </script>
   </head>

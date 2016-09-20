@@ -18,11 +18,11 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         iframe.src = "pointerevent_element_haspointercapture_release_pending_capture-manual.html";
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "target0", "mousemove");
-        sendMouseEvent(int_win, "target0", "mousedown", {button:0});
-        sendMouseEvent(int_win, "target0", "mousemove", {button:0});
-        sendMouseEvent(int_win, "target1", "mousemove", {button:0});
-        sendMouseEvent(int_win, "target1", "mouseup", {button:0});
+        sendMouseEvent(int_win, "target0", 0, "mousemove");
+        sendMouseEvent(int_win, "target0", 0, "mousedown", {button:0});
+        sendMouseEvent(int_win, "target0", 0, "mousemove", {button:0});
+        sendMouseEvent(int_win, "target1", 0, "mousemove", {button:0});
+        sendMouseEvent(int_win, "target1", 0, "mouseup", {button:0});
       }
     </script>
   </head>

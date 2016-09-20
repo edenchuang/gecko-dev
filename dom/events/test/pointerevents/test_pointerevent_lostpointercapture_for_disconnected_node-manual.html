@@ -19,10 +19,10 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         iframe.src = "pointerevent_lostpointercapture_for_disconnected_node-manual.html";
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "btnCapture", "mousedown");
-        sendMouseEvent(int_win, "btnCapture", "mousemove");
+        sendMouseEvent(int_win, "btnCapture", 0, "mousedown");
+        sendMouseEvent(int_win, "btnCapture", 0, "mousemove");
         setTimeout(function() {
-          sendMouseEvent(int_win, "target1", "mousemove");
+          sendMouseEvent(int_win, "target1", 0, "mousemove");
         }, 500);
       }
     </script>

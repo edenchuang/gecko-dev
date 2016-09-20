@@ -18,12 +18,12 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         iframe.src = "pointerevent_multiple_primary_pointers_boundary_events-manual.html";
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "target0", "mousemove");
+        sendMouseEvent(int_win, "target0", 0, "mousemove");
         sendTouchEvent(int_win, "target1", "touchstart");
         sendTouchEvent(int_win, "target1", "touchend");
-        sendMouseEvent(int_win, "target0", "mousemove");
-        sendMouseEvent(int_win, "done",    "mousedown", {button:0});
-        sendMouseEvent(int_win, "done",    "mouseup",   {button:0});
+        sendMouseEvent(int_win, "target0", 0, "mousemove");
+        sendMouseEvent(int_win, "done", 0,    "mousedown", {button:0});
+        sendMouseEvent(int_win, "done", 0,    "mouseup",   {button:0});
       }
     </script>
   </head>
