@@ -15,7 +15,8 @@ addEventListener("load", function(event) {
 function preExecute() {
   add_result_callback(parent.result_function);
   add_completion_callback(parent.completion_function);
-  parent.turnOnPointerEvents(window.callExecute);
+  // parent.turnOnPointerEvents(window.callExecute);
+  parent.turnOnPointerEvents(parent.enableSynthesizeEventsFromChrome(true, window.callExecute));
 }
 
 // The main function allows to execute tests in auto mode

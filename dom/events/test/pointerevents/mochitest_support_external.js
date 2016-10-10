@@ -14,7 +14,6 @@ function prepareTest() {
   SimpleTest.requestCompleteLog();
   turnOnPointerEvents(startTest);
 }
-
 function setImplicitPointerCapture(capture, callback) {
   console.log("SET dom.w3c_pointer_events.implicit_capture as " + capture);
   SpecialPowers.pushPrefEnv({
@@ -31,6 +30,15 @@ function turnOnPointerEvents(callback) {
     "set": [
       ["dom.w3c_pointer_events.enabled", true],
       ["layout.css.touch_action.enabled", true]
+    ]
+  }, callback);
+}
+
+function enableSynthesizeEventsFromChrome(enable, callback) {
+  console.log("SET test.events.async.enabled as TRUE");
+  SpecialPowers.pushPrefEnv({
+    "set": [
+      ["test.events.async.enabled", enable]
     ]
   }, callback);
 }
