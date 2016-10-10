@@ -6822,6 +6822,14 @@ DispatchPointerFromMouseOrTouch(PresShell* aShell,
   EventMessage pointerMessage = eVoidEvent;
   if (aEvent->mClass == eMouseEventClass) {
     WidgetMouseEvent* mouseEvent = aEvent->AsMouseEvent();
+
+    printf_stderr("%s: PS: Hi, I am carrying %d[%d](%d, %d).\n",
+                  XRE_IsContentProcess() ? "Content" : "Chrome ",
+                  mouseEvent->mMessage,
+                  mouseEvent->pointerId,
+                  mouseEvent->mRefPoint.x,
+                  mouseEvent->mRefPoint.y);
+
     // 1. If it is not mouse then it is likely will come as touch event
     // 2. We don't synthesize pointer events for those events that are not
     //    dispatched to DOM.

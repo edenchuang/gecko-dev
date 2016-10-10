@@ -480,6 +480,17 @@ EventDispatcher::Dispatch(nsISupports* aTarget,
                           EventDispatchingCallback* aCallback,
                           nsTArray<EventTarget*>* aTargets)
 {
+  if (aEvent->mClass == eMouseEventClass ||
+      aEvent->mClass == ePointerEventClass) {
+    WidgetMouseEvent* mouseEvent = aEvent->AsMouseEvent();
+    printf_stderr("%s: \tED: Hi, I am carrying %d[%d](%d, %d).\n",
+                  XRE_IsContentProcess() ? "Content" : "Chrome ",
+                  mouseEvent->mMessage,
+                  mouseEvent->pointerId,
+                  mouseEvent->mRefPoint.x,
+                  mouseEvent->mRefPoint.y);
+  }
+
   PROFILER_LABEL("EventDispatcher", "Dispatch",
     js::ProfileEntry::Category::EVENTS);
 

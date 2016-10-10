@@ -8302,6 +8302,9 @@ nsContentUtils::SendMouseEvent(nsCOMPtr<nsIPresShell> aPresShell,
 
   nsEventStatus status = nsEventStatus_eIgnore;
   if (aToWindow) {
+
+    printf_stderr("CONTENT_UTILS: Window?\n");
+
     nsCOMPtr<nsIPresShell> presShell;
     nsView* view = GetViewToDispatchEvent(presContext, getter_AddRefs(presShell));
     if (!presShell || !view) {
@@ -8310,8 +8313,14 @@ nsContentUtils::SendMouseEvent(nsCOMPtr<nsIPresShell> aPresShell,
     return presShell->HandleEvent(view->GetFrame(), &event, false, &status);
   }
   if (gfxPrefs::TestEventsAsyncEnabled()) {
+
+    printf_stderr("CONTENT_UTILS: YEAH!!!\n");
+
     status = widget->DispatchInputEvent(&event);
   } else {
+
+    printf_stderr("CONTENT_UTILS: FUCK!!!\n");
+
     nsresult rv = widget->DispatchEvent(&event, status);
     NS_ENSURE_SUCCESS(rv, rv);
   }
