@@ -1375,6 +1375,44 @@ bool TabParent::RecvDispatchWheelEvent(const mozilla::WidgetWheelEvent& aEvent)
   return true;
 }
 
+class SynRunnable : public Runnable
+{
+private:
+  nsCOMPtr<nsIWidget> mWidget;
+  WidgetMouseEvent mEvent;
+
+  // nsAString& mType;
+  // float mX;
+  // float mY;
+  // int32_t mButton;
+  // int32_t MClickCount;
+  // int32_t mModifiers;
+  // bool mIgnoreRootScrollFrame;
+  // float mPressure;
+  // unsigned short mInputSourceArg;
+  // bool mIsDOMEventSynthesized;
+  // bool mIsWidgetEventSynthesized;
+  // int32_t mButtons;
+  // int32_t mIdentifier;
+
+public:
+  SynRunnable(nsIWidget *aWidget,
+              const mozilla::WidgetMouseEvent& aEvent,
+              const LayoutDeviceIntPoint aPoint)
+    : mWidget(aWidget)
+    , mEvent(aEvent)
+  {
+    mEvent.mWidget = mWidget;
+    mEvent.mRefPoint -= aPoint;
+  }
+
+  NS_IMETHOD Run() override
+  {
+    mWidget->DispatchInputEvent(&mEvent);
+    return NS_OK;
+  }
+};
+
 bool
 TabParent::RecvDispatchMouseEvent(const mozilla::WidgetMouseEvent& aEvent)
 {
@@ -1383,11 +1421,11 @@ TabParent::RecvDispatchMouseEvent(const mozilla::WidgetMouseEvent& aEvent)
     return true;
   }
 
-  WidgetMouseEvent localEvent(aEvent);
-  localEvent.mWidget = widget;
-  localEvent.mRefPoint -= GetChildProcessOffset();
+  RefPtr<Runnable> r = new SynRunnable(widget, aEvent, GetChildProcessOffset());
+  if (NS_FAILED(NS_DispatchToMainThread(r))) {
+    return false;
+  }
 
-  widget->DispatchInputEvent(&localEvent);
   return true;
 }
 
