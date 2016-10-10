@@ -65,5 +65,7 @@ interface nsIDOMMouseEvent : nsIDOMUIEvent
 
   readonly attribute unsigned short mozInputSource;
 
+  const long MOZ_POINTERID_DEFAULT = 0;
+
   bool getModifierState(in DOMString keyArg);
 };

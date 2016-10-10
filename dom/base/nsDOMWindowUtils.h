@@ -83,6 +83,7 @@ protected:
   mozilla::layers::LayerTransactionChild* GetLayerTransaction();
 
   NS_IMETHOD SendMouseEventCommon(const nsAString& aType,
+                                  int32_t aIdentifier,
                                   float aX,
                                   float aY,
                                   int32_t aButton,

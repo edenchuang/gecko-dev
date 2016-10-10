@@ -8223,6 +8223,7 @@ nsContentUtils::SendKeyEvent(nsIWidget* aWidget,
 nsresult
 nsContentUtils::SendMouseEvent(nsCOMPtr<nsIPresShell> aPresShell,
                                const nsAString& aType,
+                               int32_t aIdentifier,
                                float aX,
                                float aY,
                                int32_t aButton,
@@ -8279,6 +8280,7 @@ nsContentUtils::SendMouseEvent(nsCOMPtr<nsIPresShell> aPresShell,
                            WidgetMouseEvent::eReal,
                          contextMenuKey ? WidgetMouseEvent::eContextMenuKey :
                                           WidgetMouseEvent::eNormal);
+  event.pointerId = aIdentifier;
   event.mModifiers = GetWidgetModifiers(aModifiers);
   event.button = aButton;
   event.buttons = aButtons != nsIDOMWindowUtils::MOUSE_BUTTONS_NOT_SPECIFIED ?

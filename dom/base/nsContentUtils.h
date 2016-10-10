@@ -2558,6 +2558,7 @@ public:
    */
   static nsresult SendMouseEvent(nsCOMPtr<nsIPresShell> aPresShell,
                                  const nsAString& aType,
+                                 int32_t aIdentifier,
                                  float aX,
                                  float aY,
                                  int32_t aButton,

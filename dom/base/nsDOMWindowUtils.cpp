@@ -651,10 +651,14 @@ nsDOMWindowUtils::SendMouseEvent(const nsAString& aType,
                                  bool aIsDOMEventSynthesized,
                                  bool aIsWidgetEventSynthesized,
                                  int32_t aButtons,
+                                 int32_t aIdentifier,
                                  uint8_t aOptionalArgCount,
                                  bool *aPreventDefault)
 {
-  return SendMouseEventCommon(aType, aX, aY, aButton, aClickCount, aModifiers,
+  return SendMouseEventCommon(aType,
+                              aOptionalArgCount >= 7 ?
+                                aIdentifier : nsIDOMMouseEvent::MOZ_POINTERID_DEFAULT,
+                              aX, aY, aButton, aClickCount, aModifiers,
                               aIgnoreRootScrollFrame, aPressure,
                               aInputSourceArg, false, aPreventDefault,
                               aOptionalArgCount >= 4 ?
@@ -678,12 +682,16 @@ nsDOMWindowUtils::SendMouseEventToWindow(const nsAString& aType,
                                          bool aIsDOMEventSynthesized,
                                          bool aIsWidgetEventSynthesized,
                                          int32_t aButtons,
+                                         int32_t aIdentifier,
                                          uint8_t aOptionalArgCount)
 {
   PROFILER_LABEL("nsDOMWindowUtils", "SendMouseEventToWindow",
     js::ProfileEntry::Category::EVENTS);
 
-  return SendMouseEventCommon(aType, aX, aY, aButton, aClickCount, aModifiers,
+  return SendMouseEventCommon(aType,
+                              aOptionalArgCount >= 7 ?
+                                aIdentifier : nsIDOMMouseEvent::MOZ_POINTERID_DEFAULT,
+                              aX, aY, aButton, aClickCount, aModifiers,
                               aIgnoreRootScrollFrame, aPressure,
                               aInputSourceArg, true, nullptr,
                               aOptionalArgCount >= 4 ?
@@ -696,6 +704,7 @@ nsDOMWindowUtils::SendMouseEventToWindow(const nsAString& aType,
 
 NS_IMETHODIMP
 nsDOMWindowUtils::SendMouseEventCommon(const nsAString& aType,
+                                       int32_t aPointerId,
                                        float aX,
                                        float aY,
                                        int32_t aButton,
@@ -711,9 +720,9 @@ nsDOMWindowUtils::SendMouseEventCommon(const nsAString& aType,
                                        int32_t aButtons)
 {
   nsCOMPtr<nsIPresShell> presShell = GetPresShell();
-  return nsContentUtils::SendMouseEvent(presShell, aType, aX, aY, aButton,
-      aButtons, aClickCount, aModifiers, aIgnoreRootScrollFrame, aPressure,
-      aInputSourceArg, aToWindow, aPreventDefault, aIsDOMEventSynthesized,
+  return nsContentUtils::SendMouseEvent(presShell, aType, aPointerId,
+      aX, aY, aButton, aButtons, aClickCount, aModifiers, aIgnoreRootScrollFrame,
+      aPressure, aInputSourceArg, aToWindow, aPreventDefault, aIsDOMEventSynthesized,
       aIsWidgetEventSynthesized);
 }
 

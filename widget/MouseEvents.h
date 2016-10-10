@@ -49,7 +49,9 @@ public:
   uint32_t tiltY;
   bool retargetedByPointerCapture;
 
-  WidgetPointerHelper() : convertToPointer(true), pointerId(0), tiltX(0), tiltY(0),
+  WidgetPointerHelper() : convertToPointer(true),
+                          pointerId(nsIDOMMouseEvent::MOZ_POINTERID_DEFAULT),
+                          tiltX(0), tiltY(0),
                           retargetedByPointerCapture(false) {}
 
   void AssignPointerHelperData(const WidgetPointerHelper& aEvent)
