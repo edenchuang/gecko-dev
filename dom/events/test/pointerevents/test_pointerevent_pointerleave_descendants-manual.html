@@ -18,6 +18,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         iframe.src = "pointerevent_pointerleave_descendants-manual.html";
       }
       function executeTest(int_win) {
+        // Not Good Enough
         sendMouseEvent(int_win, "target0", 0, "mousemove");
         sendMouseEvent(int_win, "log", 0,     "mousemove");
       }

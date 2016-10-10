@@ -18,17 +18,10 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         iframe.src = "pointerevent_pointerleave_pen-manual.html";
       }
       function executeTest(int_win) {
+        sendMouseEvent(int_win, "target0", 1, "mousemove",   {inputSource:MouseEvent.MOZ_SOURCE_PEN});
         sendMouseEvent(int_win, "target0", 1, "mousedown",   {inputSource:MouseEvent.MOZ_SOURCE_PEN});
         sendMouseEvent(int_win, "target0", 1, "mouseup",     {inputSource:MouseEvent.MOZ_SOURCE_PEN});
         sendMouseEvent(int_win, "target0", 1, "mousecancel", {inputSource:MouseEvent.MOZ_SOURCE_PEN});
-
-        // window.setTimeout(() => {
-        //   sendMouseEvent(int_win, "target0", 1, "mouseup",     {inputSource:MouseEvent.MOZ_SOURCE_PEN});
-        // }, 1000);
-
-        // window.setTimeout(() => {
-        //   sendMouseEvent(int_win, "target0", 1, "mousecancel", {inputSource:MouseEvent.MOZ_SOURCE_PEN});
-        // }, 2000);
       }
     </script>
   </head>
