@@ -60,13 +60,13 @@
 
                 on_event(target0, 'gotpointercapture', function(e) {
                     test_gotpointercapture.done();
-                    log("gotpointercapture", target0);
+                    // log("gotpointercapture", target0);
                 });
 
                 on_event(target0, 'lostpointercapture', function(e) {
                     test_lostpointercapture.done();
                     isPointerCapture = false;
-                    log("lostpointercapture", target0);
+                    // log("lostpointercapture", target0);
                 });
 
                 run();
@@ -80,7 +80,7 @@
                     detected_pointertypes[ event.pointerType ] = true;
                     if(!pointermoveNoCaptureGot0) {
                         test_pointermove0.done();
-                        log("pointermove", document.getElementById('target0'));
+                        // log("pointermove", document.getElementById('target0'));
                         pointermoveNoCaptureGot0 = true;
                     }
                     if(isPointerCapture) {
@@ -95,7 +95,7 @@
                                 (event.clientY > target0.getBoundingClientRect().bottom),
                                 "pointermove received for captured element while out of it")
                             }, "pointermove received for captured element while out of it");
-                            log("pointermove", document.getElementById('target0'));
+                            // log("pointermove", document.getElementById('target0'));
                             pointermoveCaptureGot0 = true;
                         }
                         if((event.clientX > target0.getBoundingClientRect().left)&&
@@ -106,7 +106,7 @@
                                 test(function() {
                                     assert_true(true, "pointermove received for captured element while inside of it");
                                 }, "pointermove received for captured element while inside of it");
-                            log("pointermove", document.getElementById('target0'));
+                            // log("pointermove", document.getElementById('target0'));
                             ownEventForTheCapturedTargetGot = true;
                         }
                     }
@@ -120,7 +120,7 @@
                         }
                     if(!pointermoveNoCaptureGot1) {
                         test_pointermove1.done();
-                        log("pointermove", document.getElementById('target1'));
+                        // log("pointermove", document.getElementById('target1'));
                         pointermoveNoCaptureGot1 = true;
                     }
                 });
