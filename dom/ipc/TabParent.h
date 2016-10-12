@@ -341,6 +341,9 @@ public:
   RecvDispatchMouseEvent(const mozilla::WidgetMouseEvent& aEvent) override;
 
   virtual bool
+  RecvDispatchTouchEvent(const mozilla::WidgetTouchEvent& aEvent) override;
+
+  virtual bool
   RecvDispatchKeyboardEvent(const mozilla::WidgetKeyboardEvent& aEvent) override;
 
   virtual PColorPickerParent*

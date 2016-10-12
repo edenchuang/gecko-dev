@@ -1382,6 +1382,24 @@ TabParent::RecvDispatchMouseEvent(const mozilla::WidgetMouseEvent& aEvent)
 }
 
 bool
+TabParent::RecvDispatchTouchEvent(const mozilla::WidgetTouchEvent& aEvent)
+{
+  nsCOMPtr<nsIWidget> widget = GetWidget();
+  if (!widget) {
+    return true;
+  }
+
+  WidgetTouchEvent localEvent(aEvent);
+  localEvent.mWidget = widget;
+  for(size_t i = 0; i < localEvent.mTouches.Length() ; ++i) {
+    localEvent.mTouches[i]->mRefPoint -= GetChildProcessOffset();
+  }
+
+  widget->DispatchInputEvent(&localEvent);
+  return true;
+}
+
+bool
 TabParent::RecvDispatchKeyboardEvent(const mozilla::WidgetKeyboardEvent& aEvent)
 {
   nsCOMPtr<nsIWidget> widget = GetWidget();

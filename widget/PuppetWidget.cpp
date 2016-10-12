@@ -382,6 +382,10 @@ PuppetWidget::DispatchInputEvent(WidgetInputEvent* aEvent)
       Unused <<
         mTabChild->SendDispatchMouseEvent(*aEvent->AsMouseEvent());
       break;
+    case eTouchEventClass:
+      Unused <<
+        mTabChild->SendDispatchTouchEvent(*aEvent->AsTouchEvent());
+      break;
     case eKeyboardEventClass:
       Unused <<
         mTabChild->SendDispatchKeyboardEvent(*aEvent->AsKeyboardEvent());

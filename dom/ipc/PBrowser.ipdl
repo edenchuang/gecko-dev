@@ -581,6 +581,7 @@ parent:
 
     nested(inside_sync) sync DispatchWheelEvent(WidgetWheelEvent event);
     nested(inside_sync) sync DispatchMouseEvent(WidgetMouseEvent event);
+    nested(inside_sync) sync DispatchTouchEvent(WidgetTouchEvent event);
     nested(inside_sync) sync DispatchKeyboardEvent(WidgetKeyboardEvent event);
 
     async InvokeDragSession(IPCDataTransfer[] transfers, uint32_t action,
@@ -666,7 +667,7 @@ child:
      * When two consecutive mouse move events would be added to the message queue,
      * they are 'compressed' by dumping the oldest one.
      */
-    async RealMouseMoveEvent(WidgetMouseEvent event, ScrollableLayerGuid aGuid, uint64_t aInputBlockId) compress;
+    async RealMouseMoveEvent(WidgetMouseEvent event, ScrollableLayerGuid aGuid, uint64_t aInputBlockId);
     /**
      * Mouse move events with |reason == eSynthesized| are sent via a separate
      * message because they do not generate DOM 'mousemove' events, and the

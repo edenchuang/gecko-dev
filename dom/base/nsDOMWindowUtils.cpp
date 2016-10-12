@@ -1079,8 +1079,18 @@ nsDOMWindowUtils::SendTouchEventCommon(const nsAString& aType,
     return presShell->HandleEvent(view->GetFrame(), &event, false, &status);
   }
 
-  nsresult rv = widget->DispatchEvent(&event, status);
-  *aPreventDefault = (status == nsEventStatus_eConsumeNoDefault);
+  nsresult rv = NS_OK;
+  if (gfxPrefs::TestEventsAsyncEnabled()) {
+    status = widget->DispatchInputEvent(&event);
+  } else {
+    rv = widget->DispatchEvent(&event, status);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  if (aPreventDefault) {
+    *aPreventDefault = (status == nsEventStatus_eConsumeNoDefault);
+  }
+
   return rv;
 }
 
