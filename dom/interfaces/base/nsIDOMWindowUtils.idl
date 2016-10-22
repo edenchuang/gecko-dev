@@ -1965,6 +1965,11 @@ interface nsIDOMWindowUtils : nsISupports {
    */
   void forceReflowInterrupt();
 
+  // Match WidgetMouseEventBase::buttonsFlag.
+  const long MOUSE_BUTTON_LEFT_BUTTON   = 0;
+  const long MOUSE_BUTTON_MIDDLE_BUTTON = 1;
+  const long MOUSE_BUTTON_RIGHT_BUTTON  = 2;
+
   const long MOUSE_BUTTONS_NO_BUTTON = 0x00;
   const long MOUSE_BUTTONS_LEFT_BUTTON = 0x01;
   const long MOUSE_BUTTONS_RIGHT_BUTTON = 0x02;

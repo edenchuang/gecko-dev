@@ -35,6 +35,50 @@ function turnOnPointerEvents(callback) {
   }, callback);
 }
 
+// Mouse Event Helper Object
+var ME = (function() {
+  var utils = SpecialPowers.Ci.nsIDOMWindowUtils;
+
+  return {
+    // State
+    // TODO: Sperate this to support mouse and pen simultaneously.
+    BTNS_STATE: utils.MOUSE_BUTTONS_NO_BUTTON,
+
+    // Button
+    BTN_NONE:   -1, // Used by test framework only. (replaced before sending)
+    BTN_LEFT:   utils.MOUSE_BUTTON_LEFT_BUTTON,
+    BTN_MIDDLE: utils.MOUSE_BUTTON_MIDDLE_BUTTON,
+    BTN_RIGHT:  utils.MOUSE_BUTTON_RIGHT_BUTTON,
+
+    // Buttons
+    BTNS_NONE:   utils.MOUSE_BUTTONS_NO_BUTTON,
+    BTNS_LEFT:   utils.MOUSE_BUTTONS_LEFT_BUTTON,
+    BTNS_MIDDLE: utils.MOUSE_BUTTONS_MIDDLE_BUTTON,
+    BTNS_RIGHT:  utils.MOUSE_BUTTONS_RIGHT_BUTTON,
+    BTNS_4TH:    utils.MOUSE_BUTTONS_4TH_BUTTON,
+    BTNS_5TH:    utils.MOUSE_BUTTONS_5TH_BUTTON,
+
+    // Utils
+    computeButtonsMaskFromButton: function(aButton) {
+      // Since the range of button values is 0 ~ 2 (see nsIDOMWindowUtils.idl),
+      // we can use an array to find out the desired mask.
+      var mask = [
+        this.BTNS_NONE,   // -1 (ME.BTN_NONE)
+        this.BTNS_LEFT,   // 0
+        this.BTNS_MIDDLE, // 1
+        this.BTNS_RIGHT   // 2
+      ][aButton + 1];
+
+      ok(mask !== undefined, "Unrecognised button value caught!");
+      return mask;
+    },
+
+    checkExitState: function() {
+      ok(!this.BTNS_STATE, "Mismatched mousedown/mouseup caught.");
+    }
+  };
+}) ();
+
 // Helper function to send MouseEvent with different parameters
 function sendMouseEvent(int_win, elemId, mouseEventType, params) {
   var elem = int_win.document.getElementById(elemId);
@@ -58,6 +102,18 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
 
   } else {
     is(!!elem, true, "Document should have element with id: " + elemId);
+  }
+}
+
+// Touch Event Helper Object
+var TE = {
+  // State
+  // TODO: Support multiple point scenarios.
+  TOUCH_STATE: false,
+
+  // Utils
+  checkExitState: function() {
+    ok(!this.TOUCH_STATE, "Mismatched touchstart/touchend caught.");
   }
 }
 
