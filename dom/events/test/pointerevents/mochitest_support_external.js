@@ -85,12 +85,49 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
   if(!!elem) {
     var rect = elem.getBoundingClientRect();
     var eventObj = {type: mouseEventType};
-    if(params && "button" in params)
-      eventObj.button = params.button;
+
     if(params && "inputSource" in params)
       eventObj.inputSource = params.inputSource;
-    if(params && "buttons" in params)
-      eventObj.buttons = params.buttons;
+
+    // Check or generate a |button| value.
+    eventObj.button = (function() {
+      var isButtonEvent = mouseEventType === "mouseup" ||
+                          mouseEventType === "mousedown";
+
+      // |button| is passed, use and check it.
+      if (params && "button" in params) {
+        var hasButtonValue = params.button !== ME.BTN_NONE;
+        ok(!isButtonEvent || hasButtonValue,
+           "Inappropriate |button| value caught.");
+        return params.button;
+      }
+
+      // Using the default value.
+      return isButtonEvent ? ME.BTN_LEFT : ME.BTN_NONE;
+    }) ();
+
+    // Generate a |buttons| value and update buttons state
+    eventObj.buttons = (function() {
+      var buttonsMask = ME.computeButtonsMaskFromButton(eventObj.button);
+      switch(mouseEventType) {
+        case "mousedown":
+          ME.BTNS_STATE |= buttonsMask; // Set button flag.
+          break;
+        case "mouseup":
+          ME.BTNS_STATE &= ~buttonsMask; // Clear button flag.
+          break;
+      }
+
+      return ME.BTNS_STATE;
+    }) ();
+
+    // Replace the button value for mousemove events.
+    // Since in widget level design, even when no button is pressed at all, the
+    // value of WidgetMouseEvent.button is still 0, which is the same value as
+    // the one for mouse left button.
+    if (mouseEventType === "mousemove") {
+      eventObj.button = ME.BTN_LEFT;
+    }
 
     // Default to the center of the target element but we can still send to a
     // position outside of the target element.
@@ -124,6 +161,16 @@ function sendTouchEvent(int_win, elemId, touchEventType, params) {
     var rect = elem.getBoundingClientRect();
     var eventObj = {type: touchEventType};
 
+    // Update touch state
+    switch(touchEventType) {
+      case "touchstart":
+        TE.TOUCH_STATE = true; // Set touch flag.
+        break;
+      case "touchend":
+        TE.TOUCH_STATE = false; // Clear touch flag.
+        break;
+    }
+
     // Default to the center of the target element but we can still send to a
     // position outside of the target element.
     var offsetX = params && "offsetX" in params ? params.offsetX : rect.width / 2;
@@ -152,6 +199,8 @@ function runTestInNewWindow(aFile) {
         ok(aEvent.data.result, aEvent.data.message);
         return;
       case "FIN":
+        ME.checkExitState();
+        TE.checkExitState();
         testWindow.close();
         SimpleTest.finish();
         return;
