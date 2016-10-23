@@ -35,12 +35,14 @@ function turnOnPointerEvents(callback) {
   }, callback);
 }
 
+var utils = SpecialPowers.Ci.nsIDOMWindowUtils;
+
 // Mouse Event Helper Object
 var ME = (function() {
-  var utils = SpecialPowers.Ci.nsIDOMWindowUtils;
-
   return {
     // State
+    MOUSE_ID: utils.DEFAULT_MOUSE_POINTER_ID,
+    PEN_ID:   utils.DEFAULT_PEN_POINTER_ID,
     // TODO: Sperate this to support mouse and pen simultaneously.
     BTNS_STATE: utils.MOUSE_BUTTONS_NO_BUTTON,
 
@@ -86,9 +88,14 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
     var rect = elem.getBoundingClientRect();
     var eventObj = {type: mouseEventType};
 
-    if(params && "inputSource" in params)
-      eventObj.inputSource = params.inputSource;
-
+    // Default to mouse.
+    eventObj.inputSource =
+      (params && "inputSource" in params) ? params.inputSource :
+                                            MouseEvent.MOZ_SOURCE_MOUSE;
+    // Compute pointerId
+    eventObj.id =
+      (eventObj.inputSource === MouseEvent.MOZ_SOURCE_MOUSE) ? ME.MOUSE_ID :
+                                                               ME.PEN_ID;
     // Check or generate a |button| value.
     eventObj.button = (function() {
       var isButtonEvent = mouseEventType === "mouseup" ||
@@ -145,7 +152,7 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
 // Touch Event Helper Object
 var TE = {
   // State
-  // TODO: Support multiple point scenarios.
+  TOUCH_ID: utils.DEFAULT_TOUCH_POINTER_ID,
   TOUCH_STATE: false,
 
   // Utils
@@ -155,11 +162,16 @@ var TE = {
 }
 
 // Helper function to send TouchEvent with different parameters
+// TODO: Support multiple touch points to test more features such as
+// PointerEvent.isPrimary and pinch-zoom.
 function sendTouchEvent(int_win, elemId, touchEventType, params) {
   var elem = int_win.document.getElementById(elemId);
   if(!!elem) {
     var rect = elem.getBoundingClientRect();
-    var eventObj = {type: touchEventType};
+    var eventObj = {
+      type: touchEventType,
+      id: TE.TOUCH_ID
+    };
 
     // Update touch state
     switch(touchEventType) {
@@ -187,22 +199,32 @@ function sendTouchEvent(int_win, elemId, touchEventType, params) {
 function runTestInNewWindow(aFile) {
   var testURL = location.href.substring(0, location.href.lastIndexOf('/') + 1) + aFile;
   var testWindow = window.open(testURL, "_blank");
+  var testDone = false;
 
   window.addEventListener("message", function(aEvent) {
     switch(aEvent.data.type) {
       case "START":
+        // Update constants
+        ME.MOUSE_ID = aEvent.data.message.mouseId;
+        ME.PEN_ID   = aEvent.data.message.penId;
+        TE.TOUCH_ID = aEvent.data.message.touchId;
+
         turnOnPointerEvents(() => {
           executeTest(testWindow);
         });
         return;
       case "RESULT":
-        ok(aEvent.data.result, aEvent.data.message);
+        // Should not perform checking after SimpleTest.finish().
+        if (!testDone) {
+          ok(aEvent.data.result, aEvent.data.message);
+        }
         return;
       case "FIN":
+        testDone = true;
         ME.checkExitState();
         TE.checkExitState();
         testWindow.close();
-        SimpleTest.finish();
+        SimpleTest.finish()
         return;
     }
   });
