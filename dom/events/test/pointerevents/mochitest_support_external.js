@@ -35,6 +35,15 @@ function turnOnPointerEvents(callback) {
   }, callback);
 }
 
+function enableSynthesizeEventsFromChrome(enable, callback) {
+  console.log("SET test.events.async.enabled as TRUE");
+  SpecialPowers.pushPrefEnv({
+    "set": [
+      ["test.events.async.enabled", enable]
+    ]
+  }, callback);
+}
+
 var utils = SpecialPowers.Ci.nsIDOMWindowUtils;
 
 // Mouse Event Helper Object
@@ -210,7 +219,9 @@ function runTestInNewWindow(aFile) {
         TE.TOUCH_ID = aEvent.data.message.touchId;
 
         turnOnPointerEvents(() => {
-          executeTest(testWindow);
+          enableSynthesizeEventsFromChrome(true, () => {
+            executeTest(testWindow);
+          })
         });
         return;
       case "RESULT":
