@@ -43,13 +43,24 @@ namespace dom {
 class WidgetPointerHelper
 {
 public:
+  // This enum is for internal usage, such as event generating and testing,
+  // where the pointerId of real WidgetEvents should be given when being
+  // created in the widget level.
+  enum defaultPointerId : uint32_t {
+    eDefaultMousePointerId = 0,
+    eDefaultPenPointerId   = 1,
+    eDefaultTouchPointerId = 2  // Extend if multiple touch ids are needed.
+  };
+
   bool convertToPointer;
   uint32_t pointerId;
   uint32_t tiltX;
   uint32_t tiltY;
   bool retargetedByPointerCapture;
 
-  WidgetPointerHelper() : convertToPointer(true), pointerId(0), tiltX(0), tiltY(0),
+  WidgetPointerHelper() : convertToPointer(true),
+                          pointerId(WidgetPointerHelper::eDefaultMousePointerId),
+                          tiltX(0), tiltY(0),
                           retargetedByPointerCapture(false) {}
 
   void AssignPointerHelperData(const WidgetPointerHelper& aEvent)

@@ -4484,6 +4484,7 @@ EventStateManager::FireDragEnterOrExit(nsPresContext* aPresContext,
   event.mModifiers = aDragEvent->mModifiers;
   event.buttons = aDragEvent->buttons;
   event.relatedTarget = aRelatedTarget;
+  event.pointerId = aDragEvent->pointerId;
   event.inputSource = aDragEvent->inputSource;
 
   mCurrentTargetContent = aTargetContent;
@@ -4644,6 +4645,7 @@ EventStateManager::CheckForAndDispatchClick(WidgetMouseEvent* aEvent,
     event.mTimeStamp = aEvent->mTimeStamp;
     event.mFlags.mNoContentDispatch = notDispatchToContents;
     event.button = aEvent->button;
+    event.pointerId = aEvent->pointerId;
     event.inputSource = aEvent->inputSource;
 
     nsCOMPtr<nsIPresShell> presShell = mPresContext->GetPresShell();
@@ -4676,6 +4678,7 @@ EventStateManager::CheckForAndDispatchClick(WidgetMouseEvent* aEvent,
         event2.buttons = aEvent->buttons;
         event2.mFlags.mNoContentDispatch = notDispatchToContents;
         event2.button = aEvent->button;
+        event2.pointerId = aEvent->pointerId;
         event2.inputSource = aEvent->inputSource;
 
         ret = presShell->HandleEventWithTarget(&event2, currentTarget,
