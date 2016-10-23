@@ -17,11 +17,11 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_pointerleave_after_pointercancel_touch-manual.html");
       }
       function executeTest(int_win) {
-        sendTouchEvent(int_win, "target0", "touchstart");
-        sendTouchEvent(int_win, "target0", "touchcancel");
+        sendTouchEvent(int_win, 7, "target0", "touchstart");
+        sendTouchEvent(int_win, 7, "target0", "touchcancel");
 
         // Need a touchend event to terminated the test gracefully.
-        sendTouchEvent(int_win, "target0", "touchend");
+        sendTouchEvent(int_win, 7, "target0", "touchend");
       }
     </script>
   </head>
