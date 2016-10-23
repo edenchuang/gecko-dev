@@ -17,7 +17,8 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_pointerleave_descendant_over-manual.html");
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "target0", "mousemove");
+        sendMouseEvent(int_win, "target0", "mousemove", {offSetX: 1, offSetY: 1});
+        sendMouseEvent(int_win, "target1", "mousemove");
         sendMouseEvent(int_win, "target1", "mousedown");
         sendMouseEvent(int_win, "target1", "mouseup");
       }

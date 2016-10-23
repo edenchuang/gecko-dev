@@ -17,6 +17,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_pointerup_isprimary_same_as_pointerdown-manual.html");
       }
       function executeTest(int_win) {
+        // TODO: Should test with multiple touch points.
         sendMouseEvent(int_win, "target0", "mousedown");
         sendMouseEvent(int_win, "target0", "mouseup");
       }
