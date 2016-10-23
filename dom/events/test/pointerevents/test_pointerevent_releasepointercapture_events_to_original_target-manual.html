@@ -18,8 +18,8 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
       }
       function executeTest(int_win) {
         sendTouchEvent(int_win, "target0", "touchstart");
-        sendTouchEvent(int_win, "target0", "touchmove");
-        sendTouchEvent(int_win, "target0", "touchend");
+        sendTouchEvent(int_win, "target0", "touchmove", {offsetX: 10, offsetY: 10});
+        sendTouchEvent(int_win, "target0", "touchend",  {offsetX: 10, offsetY: 10});
       }
     </script>
   </head>
