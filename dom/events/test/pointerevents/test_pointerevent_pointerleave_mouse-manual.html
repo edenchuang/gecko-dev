@@ -17,8 +17,8 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_pointerleave_mouse-manual.html");
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, 9, "target0", "mousemove");
-        sendMouseEvent(int_win, 9, "log",     "mousemove");
+        sendMouseEvent(int_win, "target0", "mousemove");
+        sendMouseEvent(int_win, "log",     "mousemove");
       }
     </script>
   </head>

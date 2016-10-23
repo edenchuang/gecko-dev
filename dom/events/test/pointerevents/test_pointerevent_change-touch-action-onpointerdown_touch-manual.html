@@ -18,9 +18,9 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
       }
       function executeTest(int_win) {
         const WM_VSCROLL = 0x0115;
-        sendTouchEvent(int_win, 7, "target0", "touchstart");
-        sendTouchEvent(int_win, 7, "target0", "touchmove");
-        sendTouchEvent(int_win, 7, "target0", "touchend");
+        sendTouchEvent(int_win, "target0", "touchstart");
+        sendTouchEvent(int_win, "target0", "touchmove");
+        sendTouchEvent(int_win, "target0", "touchend");
 
         // NOTE: This testcase is about that modifying touch-action during a
         // pointerdown callback "should not" affect the gesture detection of the

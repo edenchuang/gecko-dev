@@ -17,9 +17,9 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_pointerenter_nohover-manual.html");
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, 9, "log",     "mousemove");
-        sendTouchEvent(int_win, 7, "target0", "touchstart");
-        sendTouchEvent(int_win, 7, "target0", "touchend");
+        sendMouseEvent(int_win, "log",     "mousemove");
+        sendTouchEvent(int_win, "target0", "touchstart");
+        sendTouchEvent(int_win, "target0", "touchend");
       }
     </script>
   </head>

@@ -16,11 +16,11 @@
         runTestInNewWindow("bug1293174_implicit_pointer_capture_for_touch_2.html");
       }
       function executeTest(int_win) {
-        sendTouchEvent(int_win, 7, "target0", "touchstart");
-        sendTouchEvent(int_win, 7, "target0", "touchmove");
-        sendTouchEvent(int_win, 7, "target1", "touchmove");
-        sendTouchEvent(int_win, 7, "target0", "touchmove");
-        sendTouchEvent(int_win, 7, "target0", "touchend");
+        sendTouchEvent(int_win, "target0", "touchstart");
+        sendTouchEvent(int_win, "target0", "touchmove");
+        sendTouchEvent(int_win, "target1", "touchmove");
+        sendTouchEvent(int_win, "target0", "touchmove");
+        sendTouchEvent(int_win, "target0", "touchend");
       }
     </script>
   </head>
