@@ -41,6 +41,7 @@ namespace {
 
 static const char* gSupportedRegistrarVersions[] = {
   SERVICEWORKERREGISTRAR_VERSION,
+  "5",
   "4",
   "3",
   "2"
@@ -337,6 +338,44 @@ ServiceWorkerRegistrar::ReadData()
     nsAutoCString line;
     nsAutoCString unused;
     if (version.EqualsLiteral(SERVICEWORKERREGISTRAR_VERSION)) {
+      nsAutoCString suffix;
+      GET_LINE(suffix);
+
+      PrincipalOriginAttributes attrs;
+      if (!attrs.PopulateFromSuffix(suffix)) {
+        return NS_ERROR_INVALID_ARG;
+      }
+
+      GET_LINE(entry->scope());
+
+      entry->principal() =
+        mozilla::ipc::ContentPrincipalInfo(attrs, entry->scope());
+
+      GET_LINE(entry->currentWorkerURL());
+
+      nsAutoCString fetchFlag;
+      GET_LINE(fetchFlag);
+      if (!fetchFlag.EqualsLiteral(SERVICEWORKERREGISTRAR_TRUE) &&
+          !fetchFlag.EqualsLiteral(SERVICEWORKERREGISTRAR_FALSE)) {
+        return NS_ERROR_INVALID_ARG;
+      }
+      entry->currentWorkerHandlesFetch() =
+        fetchFlag.EqualsLiteral(SERVICEWORKERREGISTRAR_TRUE);
+
+      nsAutoCString cacheName;
+      GET_LINE(cacheName);
+      CopyUTF8toUTF16(cacheName, entry->cacheName());
+
+      nsAutoCString loadFlags;
+      GET_LINE(loadFlags);
+      entry->loadFlags() = loadFlags.ToInteger(&rv, 16);
+      if (NS_WARN_IF(NS_FAILED(rv))) {
+        return rv;
+      }
+    } else if (version.EqualsLiteral("5")) {
+      overwrite = true;
+      dedupe = true;
+
       nsAutoCString suffix;
       GET_LINE(suffix);
 
@@ -745,6 +784,9 @@ ServiceWorkerRegistrar::WriteData()
     buffer.Append('\n');
 
     buffer.Append(NS_ConvertUTF16toUTF8(data[i].cacheName()));
+    buffer.Append('\n');
+
+    buffer.AppendInt(data[i].loadFlags(), 16);
     buffer.Append('\n');
 
     buffer.AppendLiteral(SERVICEWORKERREGISTRAR_TERMINATOR);
