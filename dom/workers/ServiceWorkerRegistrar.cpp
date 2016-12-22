@@ -371,6 +371,9 @@ ServiceWorkerRegistrar::ReadData()
       entry->loadFlags() = loadFlags.ToInteger(&rv, 16);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
+      } else if (entry->loadFlags() != nsIRequest::LOAD_NORMAL &&
+                 entry->loadFlags() != nsIRequest::VALIDATE_ALWAYS) {
+        return NS_ERROR_INVALID_ARG;
       }
     } else if (version.EqualsLiteral("5")) {
       overwrite = true;
@@ -403,6 +406,8 @@ ServiceWorkerRegistrar::ReadData()
       nsAutoCString cacheName;
       GET_LINE(cacheName);
       CopyUTF8toUTF16(cacheName, entry->cacheName());
+
+      entry->loadFlags() = nsIRequest::VALIDATE_ALWAYS;
     } else if (version.EqualsLiteral("4")) {
       overwrite = true;
       dedupe = true;
@@ -428,6 +433,8 @@ ServiceWorkerRegistrar::ReadData()
       nsAutoCString cacheName;
       GET_LINE(cacheName);
       CopyUTF8toUTF16(cacheName, entry->cacheName());
+
+      entry->loadFlags() = nsIRequest::VALIDATE_ALWAYS;
     } else if (version.EqualsLiteral("3")) {
       overwrite = true;
       dedupe = true;
@@ -456,6 +463,8 @@ ServiceWorkerRegistrar::ReadData()
       nsAutoCString cacheName;
       GET_LINE(cacheName);
       CopyUTF8toUTF16(cacheName, entry->cacheName());
+
+      entry->loadFlags() = nsIRequest::VALIDATE_ALWAYS;
     } else if (version.EqualsLiteral("2")) {
       overwrite = true;
       dedupe = true;
@@ -490,6 +499,8 @@ ServiceWorkerRegistrar::ReadData()
 
       // waitingCacheName is no more used in latest version.
       GET_LINE(unused);
+
+      entry->loadFlags() = nsIRequest::VALIDATE_ALWAYS;
     } else {
       MOZ_ASSERT_UNREACHABLE("Should never get here!");
     }
@@ -788,6 +799,13 @@ ServiceWorkerRegistrar::WriteData()
 
     buffer.AppendInt(data[i].loadFlags(), 16);
     buffer.Append('\n');
+    MOZ_DIAGNOSTIC_ASSERT(data[i].loadFlags() == nsIRequest::LOAD_NORMAL ||
+                          data[i].loadFlags() == nsIRequest::VALIDATE_ALWAYS);
+
+    static_assert(nsIRequest::LOAD_NORMAL == 0,
+                  "LOAD_NORMAL matches serialized value.");
+    static_assert(nsIRequest::VALIDATE_ALWAYS == (1 << 11),
+                  "VALIDATE_ALWAYS matches serialized value");
 
     buffer.AppendLiteral(SERVICEWORKERREGISTRAR_TERMINATOR);
     buffer.Append('\n');
