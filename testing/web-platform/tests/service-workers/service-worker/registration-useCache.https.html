@@ -7,7 +7,7 @@
 <script>
 
 function registerFirstServiceWorker(test, script, scope, useCache) {
-    var swr, sw, saved;
+    var swr, sw;
 
     var setting = {scope: scope};
     if (useCache !== undefined) {
@@ -22,8 +22,6 @@ function registerFirstServiceWorker(test, script, scope, useCache) {
         .then(worker => sw = worker)
 
         .then(() => getMessageFromServiceWorker(sw, 'normal'))
-        .then(values => saved = values)
-
         .then(() => wait_for_state(test, sw, 'activated'))
         .then(() => assert_true((!!swr.active &&
                                  !swr.waiting &&
@@ -32,16 +30,10 @@ function registerFirstServiceWorker(test, script, scope, useCache) {
                                  '(a: ' + !!swr.active +
                                  ',w: ' + !swr.waiting +
                                  ',i: ' + !swr.installing + ')')))
-        .then(() => {
-          return {
-            registration: swr,
-            worker: sw,
-            values: saved
-          };
-        });
+        .then(() => swr);
 }
 
-function getMessageFromServiceWorker(sw, httpRequestType) {
+function getMessageFromServiceWorker(sw, httpRequestType, oldValues) {
     var mainResolveFunction, importedResolveFunction;
     var promises = [
         new Promise(function(resolve) {mainResolveFunction = resolve}),
@@ -50,12 +42,25 @@ function getMessageFromServiceWorker(sw, httpRequestType) {
 
     var messageChannel = new MessageChannel();
     messageChannel.port1.onmessage = e => {
-        assert_equals(e.data.type, httpRequestType, "HTTP request type check.");
+        if (httpRequestType) {
+          assert_equals(e.data.type, httpRequestType,
+                        "HTTP request type check.");
+        }
+
+        var compareOldValue = (httpRequestType === 'revalidate') && oldValues;
         switch(e.data.from) {
             case 'main':
+                if (compareOldValue) {
+                    assert_not_equals(e.data.value, oldValues[0],
+                                      'Values shouldn\'t be the same');
+                }
                 mainResolveFunction(e.data.value);
                 break;
             case 'imported':
+                if (compareOldValue) {
+                    assert_not_equals(e.data.value, oldValues[1],
+                                      'Values shouldn\'t be the same');
+                }
                 importedResolveFunction(e.data.value);
                 break;
         }
@@ -65,14 +70,27 @@ function getMessageFromServiceWorker(sw, httpRequestType) {
     return Promise.all(promises);
 }
 
-function testActionDoesCreateSW(registration, action, test, oldValue) {
+function testAction(test, registration, action, shouldCreateSW) {
+    var testFunction = shouldCreateSW ? testActionDoesCreateSW
+                                      : testActionDoesNotCreateSW;
+
     return Promise.resolve()
+        .then(() => testFunction(registration, action, test))
+        .then(() => registration);
+}
+
+function testActionDoesCreateSW(registration, action, test) {
+    var oldValues;
+
+    return Promise.resolve()
+        .then(() => getMessageFromServiceWorker(registration.active))
+        .then(values => oldValues = values)
+
         .then(() => action())
         .then(() => wait_for_update(test, registration))
-        .then(worker => getMessageFromServiceWorker(worker, 'revalidate'))
-        .then(values => assert_true((oldValue[0] !== values[0] &&
-                                     oldValue[1] !== values[1]),
-                                    'Values shouldn\'t be the same'));
+        .then(worker => getMessageFromServiceWorker(worker,
+                                                    'revalidate',
+                                                    oldValues));
 }
 
 function testActionDoesNotCreateSW(registration, action) {
@@ -94,10 +112,7 @@ promise_test(function(t) {
 
     return Promise.resolve()
         .then(() => registerFirstServiceWorker(t, script, scope))
-        .then(r => {
-            var action = r.registration.update.bind(r.registration);
-            return testActionDoesCreateSW(r.registration, action, t, r.values);
-        })
+        .then(r => testAction(t, r, r.update.bind(r), true))
 
         // Tear down
         .then(() => service_worker_unregister_and_done(t, scope));
@@ -110,10 +125,7 @@ promise_test(function(t) {
 
     return Promise.resolve()
         .then(() => registerFirstServiceWorker(t, script, scope, true))
-        .then(r => {
-            var action = r.registration.update.bind(r.registration);
-            return testActionDoesNotCreateSW(r.registration, action);
-        })
+        .then(r => testAction(t, r, r.update.bind(r), false))
 
         // Tear down
         .then(() => service_worker_unregister_and_done(t, scope));
@@ -126,10 +138,7 @@ promise_test(function(t) {
 
     return Promise.resolve()
         .then(() => registerFirstServiceWorker(t, script, scope, false))
-        .then(r => {
-            var action = r.registration.update.bind(r.registration);
-            return testActionDoesCreateSW(r.registration, action, t, r.values);
-        })
+        .then(r => testAction(t, r, r.update.bind(r), true))
 
         // Tear down
         .then(() => service_worker_unregister_and_done(t, scope));
@@ -146,7 +155,7 @@ promise_test(function(t) {
             var action = navigator.serviceWorker.register.bind(
                 navigator.serviceWorker, script, {scope: scope,
                                                   useCache: false});
-            return testActionDoesNotCreateSW(r.registration, action);
+            return testAction(t, r, action, false);
         })
 
         // Tear down
@@ -160,12 +169,14 @@ promise_test(function(t) {
 
     return Promise.resolve()
         .then(() => registerFirstServiceWorker(t, script, scope, false))
+        .then(r => testAction(t, r, r.update.bind(r), true))
         .then(r => {
             var action = navigator.serviceWorker.register.bind(
                 navigator.serviceWorker, script, {scope: scope,
                                                   useCache: true});
-            return testActionDoesNotCreateSW(r.registration, action);
+            return testAction(t, r, action, false);
         })
+        .then(r => testAction(t, r, r.update.bind(r), false))
 
         // Tear down
         .then(() => service_worker_unregister_and_done(t, scope))
@@ -178,12 +189,14 @@ promise_test(function(t) {
 
     return Promise.resolve()
         .then(() => registerFirstServiceWorker(t, script, scope, true))
+        .then(r => testAction(t, r, r.update.bind(r), false))
         .then(r => {
             var action = navigator.serviceWorker.register.bind(
                 navigator.serviceWorker, script, {scope: scope,
                                                   useCache: false});
-            return testActionDoesCreateSW(r.registration, action, t, r.values);
+            return testAction(t, r, action, true);
         })
+        .then(r => testAction(t, r, r.update.bind(r), true))
 
         // Tear down
         .then(() => service_worker_unregister_and_done(t, scope));
@@ -200,7 +213,7 @@ promise_test(function(t) {
             var action = navigator.serviceWorker.register.bind(
                 navigator.serviceWorker, script, {scope: scope,
                                                   useCache: true});
-            return testActionDoesNotCreateSW(r.registration, action);
+            return testAction(t, r, action, false);
         })
 
         // Tear down
