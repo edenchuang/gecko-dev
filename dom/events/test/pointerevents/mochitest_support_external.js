@@ -86,11 +86,18 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
   var elem = int_win.document.getElementById(elemId);
   if (!elem) {
     is(!!elem, true, "Document should have element with id: " + elemId);
-    return;
+    return Promise.reject();
   }
 
+  var promise_resolve;
+  var promise = new Promise(aResolve => promise_resolve = aResolve);
+
   var rect = elem.getBoundingClientRect();
-  var eventObj = {type: mouseEventType};
+  var eventObj = {
+    type: mouseEventType,
+    toChrome: true,
+    callback: promise_resolve
+  };
 
   // Default to mouse.
   eventObj.inputSource =
@@ -143,6 +150,7 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
 
   console.log(elemId, eventObj);
   synthesizeMouse(elem, offsetX, offsetY, eventObj, int_win);
+  return promise;
 }
 
 // Touch Event Helper Object
@@ -164,13 +172,18 @@ function sendTouchEvent(int_win, elemId, touchEventType, params) {
   var elem = int_win.document.getElementById(elemId);
   if (!elem) {
     is(!!elem, true, "Document should have element with id: " + elemId);
-    return;
+    return Promise.reject();
   }
+
+  var promise_resolve;
+  var promise = new Promise(aResolve => promise_resolve = aResolve);
 
   var rect = elem.getBoundingClientRect();
   var eventObj = {
     type: touchEventType,
-    id: TouchEventHelper.TOUCH_ID
+    id: TouchEventHelper.TOUCH_ID,
+    toChrome: true,
+    callback: promise_resolve
   };
 
   // Update touch state
@@ -190,8 +203,10 @@ function sendTouchEvent(int_win, elemId, touchEventType, params) {
 
   console.log(elemId, eventObj);
   synthesizeTouch(elem, offsetX, offsetY, eventObj, int_win);
+  return promise;
 }
 
+var test_finish_promise = Promise.resolve();
 // Helper function to run Point Event test in a new tab.
 function runTestInNewWindow(aFile) {
   var testURL = location.href.substring(0, location.href.lastIndexOf('/') + 1) + aFile;
@@ -213,13 +228,14 @@ function runTestInNewWindow(aFile) {
   window.addEventListener("message", function(aEvent) {
     switch(aEvent.data.type) {
       case "START":
+        test_finish_promise = Promise.reject();
         // Update constants
         MouseEventHelper.MOUSE_ID = aEvent.data.message.mouseId;
         MouseEventHelper.PEN_ID   = aEvent.data.message.penId;
         TouchEventHelper.TOUCH_ID = aEvent.data.message.touchId;
 
         turnOnPointerEvents(() => {
-          executeTest(testWindow);
+          test_finish_promise = executeTest(testWindow);
         });
         return;
       case "RESULT":
@@ -229,12 +245,13 @@ function runTestInNewWindow(aFile) {
         }
         return;
       case "FIN":
-        testDone = true;
-        MouseEventHelper.checkExitState();
-        TouchEventHelper.checkExitState();
-        testWindow.close();
-        SimpleTest.finish();
-        return;
+        return test_finish_promise.then(() => {
+          testDone = true;
+          MouseEventHelper.checkExitState();
+          TouchEventHelper.checkExitState();
+          testWindow.close();
+          SimpleTest.finish();
+        });
     }
   });
 }

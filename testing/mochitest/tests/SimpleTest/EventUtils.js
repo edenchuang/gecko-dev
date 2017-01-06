@@ -380,15 +380,19 @@ function synthesizeMouseAtPoint(left, top, aEvent, aWindow = window)
       ("isWidgetEventSynthesized" in aEvent) ? aEvent.isWidgetEventSynthesized : false;
     var buttons = ("buttons" in aEvent) ? aEvent.buttons :
                                           utils.MOUSE_BUTTONS_NOT_SPECIFIED;
+    var toChrome = ("toChrome" in aEvent) ? aEvent.toChrome : false;
+
     if (("type" in aEvent) && aEvent.type) {
-      defaultPrevented = utils.sendMouseEvent(aEvent.type, left, top, button,
-                                              clickCount, modifiers, false,
-                                              pressure, inputSource,
-                                              isDOMEventSynthesized,
-                                              isWidgetEventSynthesized,
-                                              buttons, id);
+      var args = [aEvent.type, left, top, button, clickCount, modifiers, false,
+                  pressure, inputSource, isDOMEventSynthesized,
+                  isWidgetEventSynthesized, buttons, id, toChrome];
+      if (aEvent.callback) {
+        args.push(aEvent.callback);
+      }
+      defaultPrevented = utils.sendMouseEvent(...args);
     }
     else {
+      // TODO: Move to promise pattern.
       utils.sendMouseEvent("mousedown", left, top, button, clickCount, modifiers,
                            false, pressure, inputSource, isDOMEventSynthesized,
                            isWidgetEventSynthesized, buttons, id);
@@ -412,11 +416,17 @@ function synthesizeTouchAtPoint(left, top, aEvent, aWindow = window)
     var angle = aEvent.angle || 0;
     var force = aEvent.force || 1;
     var modifiers = _parseModifiers(aEvent, aWindow);
+    var toChrome = ("toChrome" in aEvent) ? aEvent.toChrome : false;
 
     if (("type" in aEvent) && aEvent.type) {
-      utils.sendTouchEvent(aEvent.type, [id], [left], [top], [rx], [ry], [angle], [force], 1, modifiers);
+      var args = [aEvent.type, [id], [left], [top], [rx], [ry], [angle], [force], 1, modifiers, false, toChrome];
+      if (aEvent.callback) {
+        args.push(aEvent.callback);
+      }
+      utils.sendTouchEvent(...args);
     }
     else {
+      // TODO: Move to promise pattern.
       utils.sendTouchEvent("touchstart", [id], [left], [top], [rx], [ry], [angle], [force], 1, modifiers);
       utils.sendTouchEvent("touchend", [id], [left], [top], [rx], [ry], [angle], [force], 1, modifiers);
     }
