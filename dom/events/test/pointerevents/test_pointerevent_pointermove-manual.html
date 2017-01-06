@@ -17,8 +17,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_pointermove-manual.html");
       }
       function executeTest(int_win) {
-        return Promise.resolve()
-          .then(() => sendMouseEvent(int_win, "target0", "mousemove"));
+        return sendMouseEvent(int_win, "target0", "mousemove");
       }
     </script>
   </head>

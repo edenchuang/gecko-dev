@@ -18,9 +18,9 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
       }
       function executeTest(int_win) {
         return Promise.resolve()
-          .then(() => sendMouseEvent(int_win, "target0", "mousedown"))
-          .then(() => sendMouseEvent(int_win, "target0", "mouseup"))
-          .then(() => sendMouseEvent(int_win, "target0", "mousecancel"));
+          .then(() => sendMouseEvent(int_win, "target0", "mousedown",   {inputSource:MouseEvent.MOZ_SOURCE_PEN}))
+          .then(() => sendMouseEvent(int_win, "target0", "mouseup",     {inputSource:MouseEvent.MOZ_SOURCE_PEN}))
+          .then(() => sendMouseEvent(int_win, "target0", "mousecancel", {inputSource:MouseEvent.MOZ_SOURCE_PEN}));
       }
     </script>
   </head>

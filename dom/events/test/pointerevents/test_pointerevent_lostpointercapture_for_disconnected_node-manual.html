@@ -21,10 +21,9 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         return Promise.resolve()
           .then(() => sendMouseEvent(int_win, "btnCapture", "mousedown"))
           .then(() => sendMouseEvent(int_win, "btnCapture", "mousemove"))
-        setTimeout(function() {
-            .then(() => sendMouseEvent(int_win, "target1", "mousemove"))
-            .then(() => sendMouseEvent(int_win, "target1", "mouseup"));
-        }, 500);
+          .then(() => new Promise(aResolve => setTimeout(aResolve, 500)))
+          .then(() => sendMouseEvent(int_win, "target1", "mousemove"))
+          .then(() => sendMouseEvent(int_win, "target1", "mouseup"));
       }
     </script>
   </head>

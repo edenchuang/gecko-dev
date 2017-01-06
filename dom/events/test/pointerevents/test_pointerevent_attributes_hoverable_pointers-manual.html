@@ -13,27 +13,34 @@
         runTestInNewWindow("pointerevent_attributes_hoverable_pointers-manual.html");
       }
       function executeTest(int_win) {
-        return Promise.resolve()
         let iframeWin = int_win.document.getElementById("innerFrame").contentWindow;
-        // synthesize mouse events with input source = mouse
-          .then(() => sendMouseEvent(int_win, "square1", "mousemove"))
-          .then(() => sendMouseEvent(int_win, "square1", "mousedown"))
-          .then(() => sendMouseEvent(int_win, "square1", "mouseup"))
-          .then(() => sendMouseEvent(int_win, "square1", "mousemove"))
-          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove"))
-          .then(() => sendMouseEvent(iframeWin, "square2", "mousedown"))
-          .then(() => sendMouseEvent(iframeWin, "square2", "mouseup"))
-          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove"))
-        // synthesize mouse events with input source = pen
         let inputPen = MouseEvent.MOZ_SOURCE_PEN;
+
+        return Promise.resolve()
+          // synthesize mouse events with input source = mouse
           .then(() => sendMouseEvent(int_win, "square1", "mousemove"))
           .then(() => sendMouseEvent(int_win, "square1", "mousedown"))
           .then(() => sendMouseEvent(int_win, "square1", "mouseup"))
-          .then(() => sendMouseEvent(int_win, "square1", "mousemove"))
+          .then(() => sendMouseEvent(int_win, "square1", "mousemove", {offsetX: -1,
+                                                                       offsetY: -1}))
           .then(() => sendMouseEvent(iframeWin, "square2", "mousemove"))
           .then(() => sendMouseEvent(iframeWin, "square2", "mousedown"))
           .then(() => sendMouseEvent(iframeWin, "square2", "mouseup"))
-          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove"));
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove", {offsetX: -1,
+                                                                         offsetY: -1}))
+          // synthesize mouse events with input source = pen
+          .then(() => sendMouseEvent(int_win, "square1", "mousemove",   {inputSource: inputPen}))
+          .then(() => sendMouseEvent(int_win, "square1", "mousedown",   {inputSource: inputPen}))
+          .then(() => sendMouseEvent(int_win, "square1", "mouseup",     {inputSource: inputPen}))
+          .then(() => sendMouseEvent(int_win, "square1", "mousemove",   {inputSource: inputPen,
+                                                                         offsetX: -1,
+                                                                         offsetY: -1}))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove", {inputSource: inputPen}))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousedown", {inputSource: inputPen}))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mouseup",   {inputSource: inputPen}))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove", {inputSource: inputPen,
+                                                                         offsetX: -1,
+                                                                         offsetY: -1}));
       }
     </script>
   </head>

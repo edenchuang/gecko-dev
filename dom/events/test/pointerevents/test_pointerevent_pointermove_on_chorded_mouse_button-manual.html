@@ -20,13 +20,13 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
       function executeTest(int_win) {
         return Promise.resolve()
           .then(() => sendMouseEvent(int_win, "target0", "mousemove"))
-          .then(() => sendMouseEvent(int_win, "target0", "mousedown"))
+          .then(() => sendMouseEvent(int_win, "target0", "mousedown", {button: MouseEventHelper.BUTTON_LEFT}))
           .then(() => sendMouseEvent(int_win, "target0", "mousemove"))
-          .then(() => sendMouseEvent(int_win, "target0", "mousedown"))
+          .then(() => sendMouseEvent(int_win, "target0", "mousedown", {button: MouseEventHelper.BUTTON_MIDDLE}))
           .then(() => sendMouseEvent(int_win, "target0", "mousemove"))
-          .then(() => sendMouseEvent(int_win, "target0", "mouseup"))
+          .then(() => sendMouseEvent(int_win, "target0", "mouseup", {button: MouseEventHelper.BUTTON_MIDDLE}))
           .then(() => sendMouseEvent(int_win, "target0", "mousemove"))
-          .then(() => sendMouseEvent(int_win, "target0", "mouseup"));
+          .then(() => sendMouseEvent(int_win, "target0", "mouseup", {button: MouseEventHelper.BUTTON_LEFT}));
       }
     </script>
   </head>

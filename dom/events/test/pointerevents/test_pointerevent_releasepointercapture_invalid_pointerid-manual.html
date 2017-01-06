@@ -20,8 +20,6 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         return Promise.resolve()
           .then(() => sendTouchEvent(int_win, "target0", "touchstart"))
           .then(() => sendTouchEvent(int_win, "target0", "touchmove"))
-
-        // Need a touchend event to terminated the test gracefully.
           .then(() => sendTouchEvent(int_win, "target0", "touchend"));
       }
     </script>
