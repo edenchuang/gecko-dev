@@ -84,7 +84,11 @@ var MouseEventHelper = (function() {
 // Helper function to send MouseEvent with different parameters
 function sendMouseEvent(int_win, elemId, mouseEventType, params) {
   var elem = int_win.document.getElementById(elemId);
-  if(!!elem) {
+  if (!elem) {
+    is(!!elem, true, "Document should have element with id: " + elemId);
+    return;
+  }
+
     var rect = elem.getBoundingClientRect();
     var eventObj = {type: mouseEventType};
 
@@ -139,10 +143,6 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
 
     console.log(elemId, eventObj);
     synthesizeMouse(elem, offsetX, offsetY, eventObj, int_win);
-
-  } else {
-    is(!!elem, true, "Document should have element with id: " + elemId);
-  }
 }
 
 // Touch Event Helper Object
@@ -162,7 +162,11 @@ var TouchEventHelper = {
 // PointerEvent.isPrimary and pinch-zoom.
 function sendTouchEvent(int_win, elemId, touchEventType, params) {
   var elem = int_win.document.getElementById(elemId);
-  if(!!elem) {
+  if (!elem) {
+    is(!!elem, true, "Document should have element with id: " + elemId);
+    return;
+  }
+
     var rect = elem.getBoundingClientRect();
     var eventObj = {
       type: touchEventType,
@@ -186,9 +190,6 @@ function sendTouchEvent(int_win, elemId, touchEventType, params) {
 
     console.log(elemId, eventObj);
     synthesizeTouch(elem, offsetX, offsetY, eventObj, int_win);
-  } else {
-    is(!!elem, true, "Document should have element with id: " + elemId);
-  }
 }
 
 // Helper function to run Point Event test in a new tab.
