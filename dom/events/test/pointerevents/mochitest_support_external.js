@@ -89,60 +89,60 @@ function sendMouseEvent(int_win, elemId, mouseEventType, params) {
     return;
   }
 
-    var rect = elem.getBoundingClientRect();
-    var eventObj = {type: mouseEventType};
+  var rect = elem.getBoundingClientRect();
+  var eventObj = {type: mouseEventType};
 
-    // Default to mouse.
-    eventObj.inputSource =
-      (params && "inputSource" in params) ? params.inputSource :
-                                            MouseEvent.MOZ_SOURCE_MOUSE;
-    // Compute pointerId
-    eventObj.id =
-      (eventObj.inputSource === MouseEvent.MOZ_SOURCE_MOUSE) ? MouseEventHelper.MOUSE_ID :
-                                                               MouseEventHelper.PEN_ID;
-    // Check or generate a |button| value.
-    var isButtonEvent = mouseEventType === "mouseup" ||
-                        mouseEventType === "mousedown";
+  // Default to mouse.
+  eventObj.inputSource =
+    (params && "inputSource" in params) ? params.inputSource :
+                                          MouseEvent.MOZ_SOURCE_MOUSE;
+  // Compute pointerId
+  eventObj.id =
+    (eventObj.inputSource === MouseEvent.MOZ_SOURCE_MOUSE) ? MouseEventHelper.MOUSE_ID :
+                                                             MouseEventHelper.PEN_ID;
+  // Check or generate a |button| value.
+  var isButtonEvent = mouseEventType === "mouseup" ||
+                      mouseEventType === "mousedown";
 
-    // Set |button| to the default value first.
-    eventObj.button = isButtonEvent ? MouseEventHelper.BUTTON_LEFT
-                                    : MouseEventHelper.BUTTON_NONE;
+  // Set |button| to the default value first.
+  eventObj.button = isButtonEvent ? MouseEventHelper.BUTTON_LEFT
+                                  : MouseEventHelper.BUTTON_NONE;
 
-    // |button| is passed, use and check it.
-    if (params && "button" in params) {
-      var hasButtonValue = (params.button !== MouseEventHelper.BUTTON_NONE);
-      ok(!isButtonEvent || hasButtonValue,
-         "Inappropriate |button| value caught.");
-      eventObj.button = params.button;
-    }
+  // |button| is passed, use and check it.
+  if (params && "button" in params) {
+    var hasButtonValue = (params.button !== MouseEventHelper.BUTTON_NONE);
+    ok(!isButtonEvent || hasButtonValue,
+       "Inappropriate |button| value caught.");
+    eventObj.button = params.button;
+  }
 
-    // Generate a |buttons| value and update buttons state
-    var buttonsMask = MouseEventHelper.computeButtonsMaskFromButton(eventObj.button);
-    switch(mouseEventType) {
-      case "mousedown":
-        MouseEventHelper.BUTTONS_STATE |= buttonsMask; // Set button flag.
-        break;
-      case "mouseup":
-        MouseEventHelper.BUTTONS_STATE &= ~buttonsMask; // Clear button flag.
-        break;
-    }
-    eventObj.buttons = MouseEventHelper.BUTTONS_STATE;
+  // Generate a |buttons| value and update buttons state
+  var buttonsMask = MouseEventHelper.computeButtonsMaskFromButton(eventObj.button);
+  switch(mouseEventType) {
+    case "mousedown":
+      MouseEventHelper.BUTTONS_STATE |= buttonsMask; // Set button flag.
+      break;
+    case "mouseup":
+      MouseEventHelper.BUTTONS_STATE &= ~buttonsMask; // Clear button flag.
+      break;
+  }
+  eventObj.buttons = MouseEventHelper.BUTTONS_STATE;
 
-    // Replace the button value for mousemove events.
-    // Since in widget level design, even when no button is pressed at all, the
-    // value of WidgetMouseEvent.button is still 0, which is the same value as
-    // the one for mouse left button.
-    if (mouseEventType === "mousemove") {
-      eventObj.button = MouseEventHelper.BUTTON_LEFT;
-    }
+  // Replace the button value for mousemove events.
+  // Since in widget level design, even when no button is pressed at all, the
+  // value of WidgetMouseEvent.button is still 0, which is the same value as
+  // the one for mouse left button.
+  if (mouseEventType === "mousemove") {
+    eventObj.button = MouseEventHelper.BUTTON_LEFT;
+  }
 
-    // Default to the center of the target element but we can still send to a
-    // position outside of the target element.
-    var offsetX = params && "offsetX" in params ? params.offsetX : rect.width / 2;
-    var offsetY = params && "offsetY" in params ? params.offsetY : rect.height / 2;
+  // Default to the center of the target element but we can still send to a
+  // position outside of the target element.
+  var offsetX = params && "offsetX" in params ? params.offsetX : rect.width / 2;
+  var offsetY = params && "offsetY" in params ? params.offsetY : rect.height / 2;
 
-    console.log(elemId, eventObj);
-    synthesizeMouse(elem, offsetX, offsetY, eventObj, int_win);
+  console.log(elemId, eventObj);
+  synthesizeMouse(elem, offsetX, offsetY, eventObj, int_win);
 }
 
 // Touch Event Helper Object
@@ -167,29 +167,29 @@ function sendTouchEvent(int_win, elemId, touchEventType, params) {
     return;
   }
 
-    var rect = elem.getBoundingClientRect();
-    var eventObj = {
-      type: touchEventType,
-      id: TouchEventHelper.TOUCH_ID
-    };
+  var rect = elem.getBoundingClientRect();
+  var eventObj = {
+    type: touchEventType,
+    id: TouchEventHelper.TOUCH_ID
+  };
 
-    // Update touch state
-    switch(touchEventType) {
-      case "touchstart":
-        TouchEventHelper.TOUCH_STATE = true; // Set touch flag.
-        break;
-      case "touchend":
-        TouchEventHelper.TOUCH_STATE = false; // Clear touch flag.
-        break;
-    }
+  // Update touch state
+  switch(touchEventType) {
+    case "touchstart":
+      TouchEventHelper.TOUCH_STATE = true; // Set touch flag.
+      break;
+    case "touchend":
+      TouchEventHelper.TOUCH_STATE = false; // Clear touch flag.
+      break;
+  }
 
-    // Default to the center of the target element but we can still send to a
-    // position outside of the target element.
-    var offsetX = params && "offsetX" in params ? params.offsetX : rect.width / 2;
-    var offsetY = params && "offsetY" in params ? params.offsetY : rect.height / 2;
+  // Default to the center of the target element but we can still send to a
+  // position outside of the target element.
+  var offsetX = params && "offsetX" in params ? params.offsetX : rect.width / 2;
+  var offsetY = params && "offsetY" in params ? params.offsetY : rect.height / 2;
 
-    console.log(elemId, eventObj);
-    synthesizeTouch(elem, offsetX, offsetY, eventObj, int_win);
+  console.log(elemId, eventObj);
+  synthesizeTouch(elem, offsetX, offsetY, eventObj, int_win);
 }
 
 // Helper function to run Point Event test in a new tab.
