@@ -17,11 +17,12 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_releasepointercapture_onpointercancel_touch-manual.html");
       }
       function executeTest(int_win) {
-        sendTouchEvent(int_win, "target0", "touchstart");
-        sendTouchEvent(int_win, "target0", "touchcancel");
+        return Promise.resolve()
+          .then(() => sendTouchEvent(int_win, "target0", "touchstart"))
+          .then(() => sendTouchEvent(int_win, "target0", "touchcancel"))
 
         // Need a touchend event to terminated the test gracefully.
-        sendTouchEvent(int_win, "target0", "touchend");
+          .then(() => sendTouchEvent(int_win, "target0", "touchend"));
       }
     </script>
   </head>

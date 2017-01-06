@@ -13,26 +13,27 @@
         runTestInNewWindow("pointerevent_attributes_hoverable_pointers-manual.html");
       }
       function executeTest(int_win) {
+        return Promise.resolve()
         let iframeWin = int_win.document.getElementById("innerFrame").contentWindow;
         // synthesize mouse events with input source = mouse
-        sendMouseEvent(int_win, "square1", "mousemove");
-        sendMouseEvent(int_win, "square1", "mousedown");
-        sendMouseEvent(int_win, "square1", "mouseup");
-        sendMouseEvent(int_win, "square1", "mousemove");
-        sendMouseEvent(iframeWin, "square2", "mousemove");
-        sendMouseEvent(iframeWin, "square2", "mousedown");
-        sendMouseEvent(iframeWin, "square2", "mouseup");
-        sendMouseEvent(iframeWin, "square2", "mousemove");
+          .then(() => sendMouseEvent(int_win, "square1", "mousemove"))
+          .then(() => sendMouseEvent(int_win, "square1", "mousedown"))
+          .then(() => sendMouseEvent(int_win, "square1", "mouseup"))
+          .then(() => sendMouseEvent(int_win, "square1", "mousemove"))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove"))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousedown"))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mouseup"))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove"))
         // synthesize mouse events with input source = pen
         let inputPen = MouseEvent.MOZ_SOURCE_PEN;
-        sendMouseEvent(int_win, "square1", "mousemove");
-        sendMouseEvent(int_win, "square1", "mousedown");
-        sendMouseEvent(int_win, "square1", "mouseup");
-        sendMouseEvent(int_win, "square1", "mousemove");
-        sendMouseEvent(iframeWin, "square2", "mousemove");
-        sendMouseEvent(iframeWin, "square2", "mousedown");
-        sendMouseEvent(iframeWin, "square2", "mouseup");
-        sendMouseEvent(iframeWin, "square2", "mousemove");
+          .then(() => sendMouseEvent(int_win, "square1", "mousemove"))
+          .then(() => sendMouseEvent(int_win, "square1", "mousedown"))
+          .then(() => sendMouseEvent(int_win, "square1", "mouseup"))
+          .then(() => sendMouseEvent(int_win, "square1", "mousemove"))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove"))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousedown"))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mouseup"))
+          .then(() => sendMouseEvent(iframeWin, "square2", "mousemove"));
       }
     </script>
   </head>

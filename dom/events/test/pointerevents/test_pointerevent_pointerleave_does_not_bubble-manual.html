@@ -17,8 +17,9 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_pointerleave_does_not_bubble-manual.html");
       }
       function executeTest(int_win) {
-        sendTouchEvent(int_win, "target0", "touchstart");
-        sendTouchEvent(int_win, "target0", "touchend");
+        return Promise.resolve()
+          .then(() => sendTouchEvent(int_win, "target0", "touchstart"))
+          .then(() => sendTouchEvent(int_win, "target0", "touchend"));
       }
     </script>
   </head>

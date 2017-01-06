@@ -13,11 +13,12 @@
         runTestInNewWindow("pointerevent_attributes_nohover_pointers-manual.html");
       }
       function executeTest(int_win) {
-        sendTouchEvent(int_win, "square1", "touchstart");
-        sendTouchEvent(int_win, "square1", "touchend");
+        return Promise.resolve()
+          .then(() => sendTouchEvent(int_win, "square1", "touchstart"))
+          .then(() => sendTouchEvent(int_win, "square1", "touchend"))
         let iframe = int_win.document.getElementById("innerFrame");
-        sendTouchEvent(iframe.contentWindow, "square2", "touchstart");
-        sendTouchEvent(iframe.contentWindow, "square2", "touchend");
+          .then(() => sendTouchEvent(iframe.contentWindow, "square2", "touchstart"))
+          .then(() => sendTouchEvent(iframe.contentWindow, "square2", "touchend"));
       }
     </script>
   </head>

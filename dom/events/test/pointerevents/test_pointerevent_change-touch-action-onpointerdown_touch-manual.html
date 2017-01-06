@@ -17,10 +17,11 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_change-touch-action-onpointerdown_touch-manual.html");
       }
       function executeTest(int_win) {
+        return Promise.resolve()
         const WM_VSCROLL = 0x0115;
-        sendTouchEvent(int_win, "target0", "touchstart");
-        sendTouchEvent(int_win, "target0", "touchmove");
-        sendTouchEvent(int_win, "target0", "touchend");
+          .then(() => sendTouchEvent(int_win, "target0", "touchstart"))
+          .then(() => sendTouchEvent(int_win, "target0", "touchmove"))
+          .then(() => sendTouchEvent(int_win, "target0", "touchend"))
 
         // NOTE: This testcase is about that modifying touch-action during a
         // pointerdown callback "should not" affect the gesture detection of the

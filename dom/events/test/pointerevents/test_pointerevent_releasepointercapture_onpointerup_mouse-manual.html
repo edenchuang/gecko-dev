@@ -17,8 +17,9 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_releasepointercapture_onpointerup_mouse-manual.html");
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "btnCapture", "mousedown");
-        sendMouseEvent(int_win, "btnCapture", "mouseup");
+        return Promise.resolve()
+          .then(() => sendMouseEvent(int_win, "btnCapture", "mousedown"))
+          .then(() => sendMouseEvent(int_win, "btnCapture", "mouseup"));
       }
     </script>
   </head>

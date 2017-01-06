@@ -17,9 +17,10 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_pointerleave_descendant_over-manual.html");
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "target0", "mousemove");
-        sendMouseEvent(int_win, "target1", "mousedown");
-        sendMouseEvent(int_win, "target1", "mouseup");
+        return Promise.resolve()
+          .then(() => sendMouseEvent(int_win, "target0", "mousemove"))
+          .then(() => sendMouseEvent(int_win, "target1", "mousedown"))
+          .then(() => sendMouseEvent(int_win, "target1", "mouseup"));
       }
     </script>
   </head>

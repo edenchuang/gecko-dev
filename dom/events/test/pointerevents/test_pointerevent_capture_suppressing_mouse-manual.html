@@ -17,14 +17,15 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_capture_suppressing_mouse-manual.html");
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "target0",    "mousemove");
-        sendMouseEvent(int_win, "target1",    "mousemove");
-        sendMouseEvent(int_win, "btnCapture", "mousedown");
-        sendMouseEvent(int_win, "target1",    "mousemove");
-        sendMouseEvent(int_win, "target0",    "mousemove");
-        sendMouseEvent(int_win, "target1",    "mousemove");
-        sendMouseEvent(int_win, "target1",    "mouseup");
-        sendMouseEvent(int_win, "target1",    "mousemove");
+        return Promise.resolve()
+          .then(() => sendMouseEvent(int_win, "target0",    "mousemove"))
+          .then(() => sendMouseEvent(int_win, "target1",    "mousemove"))
+          .then(() => sendMouseEvent(int_win, "btnCapture", "mousedown"))
+          .then(() => sendMouseEvent(int_win, "target1",    "mousemove"))
+          .then(() => sendMouseEvent(int_win, "target0",    "mousemove"))
+          .then(() => sendMouseEvent(int_win, "target1",    "mousemove"))
+          .then(() => sendMouseEvent(int_win, "target1",    "mouseup"))
+          .then(() => sendMouseEvent(int_win, "target1",    "mousemove"));
       }
     </script>
   </head>

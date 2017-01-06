@@ -17,12 +17,13 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
         runTestInNewWindow("pointerevent_multiple_primary_pointers_boundary_events-manual.html");
       }
       function executeTest(int_win) {
-        sendMouseEvent(int_win, "target0", "mousemove");
-        sendTouchEvent(int_win, "target1", "touchstart");
-        sendTouchEvent(int_win, "target1", "touchend");
-        sendMouseEvent(int_win, "target0", "mousemove");
-        sendMouseEvent(int_win, "done",    "mousedown");
-        sendMouseEvent(int_win, "done",    "mouseup");
+        return Promise.resolve()
+          .then(() => sendMouseEvent(int_win, "target0", "mousemove"))
+          .then(() => sendTouchEvent(int_win, "target1", "touchstart"))
+          .then(() => sendTouchEvent(int_win, "target1", "touchend"))
+          .then(() => sendMouseEvent(int_win, "target0", "mousemove"))
+          .then(() => sendMouseEvent(int_win, "done",    "mousedown"))
+          .then(() => sendMouseEvent(int_win, "done",    "mouseup"));
       }
     </script>
   </head>
