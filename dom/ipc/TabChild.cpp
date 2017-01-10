@@ -1617,6 +1617,10 @@ TabChild::RecvRealMouseButtonEvent(const WidgetMouseEvent& aEvent,
   if (aInputBlockId && aEvent.mFlags.mHandledByAPZ) {
     mAPZEventState->ProcessMouseEvent(aEvent, aGuid, aInputBlockId);
   }
+
+  // Notify the saved observer for that this event is handled.
+  AutoObserverNotifier::NotifySavedObserver(aEvent.mObserverId,
+                                            "RecvRealMouseButtonEvent");
   return IPC_OK();
 }
 
@@ -1683,6 +1687,10 @@ TabChild::RecvRealTouchEvent(const WidgetTouchEvent& aEvent,
 
   mAPZEventState->ProcessTouchEvent(localEvent, aGuid, aInputBlockId,
       aApzResponse, status);
+
+  // Notify the saved observer for that this event is handled.
+  AutoObserverNotifier::NotifySavedObserver(aEvent.mObserverId,
+                                            "RecvRealTouchEvent");
   return IPC_OK();
 }
 
