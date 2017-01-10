@@ -231,7 +231,7 @@ WheelTransaction::OnEvent(WidgetEvent* aEvent)
     case eMouseMove:
     case eDragOver: {
       WidgetMouseEvent* mouseEvent = aEvent->AsMouseEvent();
-      if (mouseEvent->IsReal()) {
+      if (mouseEvent->IsRealOrDriver()) {
         // If the cursor is moving to be outside the frame,
         // terminate the scrollwheel transaction.
         nsIntPoint pt = GetScreenPoint(mouseEvent);

@@ -8282,10 +8282,11 @@ nsContentUtils::SendMouseEvent(const nsCOMPtr<nsIPresShell>& aPresShell,
     aInputSourceArg = nsIDOMMouseEvent::MOZ_SOURCE_MOUSE;
   }
 
-  WidgetMouseEvent event(true, msg, widget,
-                         aIsWidgetEventSynthesized ?
-                           WidgetMouseEvent::eSynthesized :
-                           WidgetMouseEvent::eReal,
+  WidgetMouseEvent::Reason reason =
+    aIsWidgetEventSynthesized ? WidgetMouseEvent::eSynthesized
+                              : aToChrome ? WidgetMouseEvent::eDriver
+                                          : WidgetMouseEvent::eReal;
+  WidgetMouseEvent event(true, msg, widget, reason,
                          contextMenuKey ? WidgetMouseEvent::eContextMenuKey :
                                           WidgetMouseEvent::eNormal);
   event.pointerId = aIdentifier;

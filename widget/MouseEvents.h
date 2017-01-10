@@ -197,10 +197,11 @@ private:
   friend class dom::PBrowserChild;
 
 public:
-  typedef bool ReasonType;
+  typedef uint8_t ReasonType;
   enum Reason : ReasonType
   {
     eReal,
+    eDriver,
     eSynthesized
   };
 
@@ -330,9 +331,15 @@ public:
    * Returns true if the event is a real mouse event.  Otherwise, i.e., it's
    * a synthesized event by scroll or something, returns false.
    */
-  bool IsReal() const
+  inline bool IsReal() const
   {
     return mReason == eReal;
+  }
+
+  inline bool IsRealOrDriver() const
+  {
+    return mReason == eReal ||
+           mReason == eDriver;
   }
 };
 

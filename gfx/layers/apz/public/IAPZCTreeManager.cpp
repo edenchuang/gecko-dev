@@ -61,7 +61,7 @@ IAPZCTreeManager::ReceiveInputEvent(
       WidgetMouseEvent& mouseEvent = *aEvent.AsMouseEvent();
 
       // Note, we call this before having transformed the reference point.
-      if (mouseEvent.IsReal()) {
+      if (mouseEvent.IsRealOrDriver()) {
         UpdateWheelTransaction(mouseEvent.mRefPoint, mouseEvent.mMessage);
       }
 

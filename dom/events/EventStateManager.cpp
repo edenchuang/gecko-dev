@@ -541,7 +541,7 @@ EventStateManager::PreHandleEvent(nsPresContext* aPresContext,
   // a page when user is not active doesn't change the state to active.
   WidgetMouseEvent* mouseEvent = aEvent->AsMouseEvent();
   if (aEvent->IsTrusted() &&
-      ((mouseEvent && mouseEvent->IsReal() &&
+      ((mouseEvent && mouseEvent->IsRealOrDriver() &&
         IsMessageMouseUserActivity(mouseEvent->mMessage)) ||
        aEvent->mClass == eWheelEventClass ||
        aEvent->mClass == ePointerEventClass ||
@@ -589,7 +589,7 @@ EventStateManager::PreHandleEvent(nsPresContext* aPresContext,
   // Store last known screenPoint and clientPoint so pointer lock
   // can use these values as constants.
   if (aEvent->IsTrusted() &&
-      ((mouseEvent && mouseEvent->IsReal()) ||
+      ((mouseEvent && mouseEvent->IsRealOrDriver()) ||
        aEvent->mClass == eWheelEventClass) &&
       !sIsPointerLocked) {
     sLastScreenPoint =
@@ -3169,7 +3169,7 @@ EventStateManager::PostHandleEvent(nsPresContext* aPresContext,
     {
       ClearGlobalActiveContent(this);
       WidgetMouseEvent* mouseEvent = aEvent->AsMouseEvent();
-      if (mouseEvent && mouseEvent->IsReal()) {
+      if (mouseEvent && mouseEvent->IsRealOrDriver()) {
         if (!mCurrentTarget) {
           GetEventTarget();
         }

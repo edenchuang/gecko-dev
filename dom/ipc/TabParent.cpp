@@ -1091,10 +1091,11 @@ bool TabParent::SendRealMouseEvent(WidgetMouseEvent& event)
   ApzAwareEventRoutingToChild(&guid, &blockId, nullptr);
 
   if (eMouseMove == event.mMessage) {
-    if (event.mReason == WidgetMouseEvent::eSynthesized) {
-      return SendSynthMouseMoveEvent(event, guid, blockId);
-    } else {
+    if (event.IsReal()) {
+      // We compress consecutive real mousemoves into one deliberately.
       return SendRealMouseMoveEvent(event, guid, blockId);
+    } else {
+      return SendSynthMouseMoveEvent(event, guid, blockId);
     }
   }
 
