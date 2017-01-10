@@ -335,6 +335,9 @@ public:
   RecvDispatchMouseEvent(const mozilla::WidgetMouseEvent& aEvent) override;
 
   virtual mozilla::ipc::IPCResult
+  RecvDispatchTouchEvent(const mozilla::WidgetTouchEvent& aEvent) override;
+
+  virtual mozilla::ipc::IPCResult
   RecvDispatchKeyboardEvent(const mozilla::WidgetKeyboardEvent& aEvent) override;
 
   virtual PColorPickerParent*

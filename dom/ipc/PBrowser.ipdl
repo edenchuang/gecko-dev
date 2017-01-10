@@ -583,6 +583,7 @@ parent:
 
     nested(inside_sync) sync DispatchWheelEvent(WidgetWheelEvent event);
     nested(inside_sync) sync DispatchMouseEvent(WidgetMouseEvent event);
+    nested(inside_sync) sync DispatchTouchEvent(WidgetTouchEvent event);
     nested(inside_sync) sync DispatchKeyboardEvent(WidgetKeyboardEvent event);
 
     async InvokeDragSession(IPCDataTransfer[] transfers, uint32_t action,
