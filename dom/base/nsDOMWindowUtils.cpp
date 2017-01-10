@@ -644,6 +644,8 @@ nsDOMWindowUtils::SendMouseEvent(const nsAString& aType,
                                  bool aIsWidgetEventSynthesized,
                                  int32_t aButtons,
                                  uint32_t aIdentifier,
+                                 bool aToChrome,
+                                 nsIObserver *aObserver,
                                  uint8_t aOptionalArgCount,
                                  bool *aPreventDefault)
 {
@@ -658,7 +660,9 @@ nsDOMWindowUtils::SendMouseEvent(const nsAString& aType,
                               aOptionalArgCount >= 5 ?
                                 aIsWidgetEventSynthesized : false,
                               aOptionalArgCount >= 6 ?
-                              aButtons : MOUSE_BUTTONS_NOT_SPECIFIED);
+                              aButtons : MOUSE_BUTTONS_NOT_SPECIFIED,
+                              aToChrome,
+                              aObserver);
 }
 
 NS_IMETHODIMP
@@ -691,7 +695,8 @@ nsDOMWindowUtils::SendMouseEventToWindow(const nsAString& aType,
                               aOptionalArgCount >= 5 ?
                                 aIsWidgetEventSynthesized : false,
                               aOptionalArgCount >= 6 ?
-                              aButtons : MOUSE_BUTTONS_NOT_SPECIFIED);
+                              aButtons : MOUSE_BUTTONS_NOT_SPECIFIED,
+                              false, nullptr);
 }
 
 NS_IMETHODIMP
@@ -709,13 +714,15 @@ nsDOMWindowUtils::SendMouseEventCommon(const nsAString& aType,
                                        bool *aPreventDefault,
                                        bool aIsDOMEventSynthesized,
                                        bool aIsWidgetEventSynthesized,
-                                       int32_t aButtons)
+                                       int32_t aButtons,
+                                       bool aToChrome,
+                                       nsIObserver *aObserver)
 {
   nsCOMPtr<nsIPresShell> presShell = GetPresShell();
   return nsContentUtils::SendMouseEvent(presShell, aType, aX, aY, aButton,
       aButtons, aClickCount, aModifiers, aIgnoreRootScrollFrame, aPressure,
       aInputSourceArg, aPointerId, aToWindow, aPreventDefault,
-      aIsDOMEventSynthesized, aIsWidgetEventSynthesized);
+      aIsDOMEventSynthesized, aIsWidgetEventSynthesized, aToChrome, aObserver);
 }
 
 NS_IMETHODIMP
@@ -975,11 +982,17 @@ nsDOMWindowUtils::SendTouchEvent(const nsAString& aType,
                                  uint32_t aCount,
                                  int32_t aModifiers,
                                  bool aIgnoreRootScrollFrame,
+                                 bool aToChrome,
+                                 nsIObserver *aObserver,
+                                 uint8_t aOptionalArgCount,
                                  bool *aPreventDefault)
 {
+  bool toChrome = aOptionalArgCount >= 2 ? aToChrome : false;
+  nsIObserver *observer = aOptionalArgCount >= 3 ? aObserver : nullptr;
   return SendTouchEventCommon(aType, aIdentifiers, aXs, aYs, aRxs, aRys,
                               aRotationAngles, aForces, aCount, aModifiers,
-                              aIgnoreRootScrollFrame, false, aPreventDefault);
+                              aIgnoreRootScrollFrame, false, aPreventDefault,
+                              toChrome, observer);
 }
 
 NS_IMETHODIMP
@@ -998,7 +1011,8 @@ nsDOMWindowUtils::SendTouchEventToWindow(const nsAString& aType,
 {
   return SendTouchEventCommon(aType, aIdentifiers, aXs, aYs, aRxs, aRys,
                               aRotationAngles, aForces, aCount, aModifiers,
-                              aIgnoreRootScrollFrame, true, aPreventDefault);
+                              aIgnoreRootScrollFrame, true, aPreventDefault,
+                              false, nullptr);
 }
 
 NS_IMETHODIMP
@@ -1014,7 +1028,9 @@ nsDOMWindowUtils::SendTouchEventCommon(const nsAString& aType,
                                        int32_t aModifiers,
                                        bool aIgnoreRootScrollFrame,
                                        bool aToWindow,
-                                       bool* aPreventDefault)
+                                       bool* aPreventDefault,
+                                       bool aToChrome,
+                                       nsIObserver *aObserver)
 {
   // get the widget to send the event to
   nsPoint offset;
@@ -1069,8 +1085,20 @@ nsDOMWindowUtils::SendTouchEventCommon(const nsAString& aType,
     return presShell->HandleEvent(view->GetFrame(), &event, false, &status);
   }
 
-  nsresult rv = widget->DispatchEvent(&event, status);
-  *aPreventDefault = (status == nsEventStatus_eConsumeNoDefault);
+  nsresult rv = NS_OK;
+  if (aToChrome) {
+    status = widget->DispatchInputEvent(&event, aObserver);
+  } else {
+    rv = widget->DispatchEvent(&event, status);
+    if (aObserver) {
+      aObserver->Observe(nullptr, "InputEvent", nullptr);
+    }
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  if (aPreventDefault) {
+    *aPreventDefault = (status == nsEventStatus_eConsumeNoDefault);
+  }
 
   return rv;
 }

@@ -2590,7 +2590,9 @@ public:
                                  bool aToWindow,
                                  bool *aPreventDefault,
                                  bool aIsDOMEventSynthesized,
-                                 bool aIsWidgetEventSynthesized);
+                                 bool aIsWidgetEventSynthesized,
+                                 bool aToChrome,
+                                 nsIObserver *aObserver);
 
   static void FirePageShowEvent(nsIDocShellTreeItem* aItem,
                                 mozilla::dom::EventTarget* aChromeEventHandler,

@@ -8244,7 +8244,9 @@ nsContentUtils::SendMouseEvent(const nsCOMPtr<nsIPresShell>& aPresShell,
                                bool aToWindow,
                                bool *aPreventDefault,
                                bool aIsDOMEventSynthesized,
-                               bool aIsWidgetEventSynthesized)
+                               bool aIsWidgetEventSynthesized,
+                               bool aToChrome,
+                               nsIObserver *aObserver)
 {
   nsPoint offset;
   nsCOMPtr<nsIWidget> widget = GetWidget(aPresShell, &offset);
@@ -8319,7 +8321,8 @@ nsContentUtils::SendMouseEvent(const nsCOMPtr<nsIPresShell>& aPresShell,
     return presShell->HandleEvent(view->GetFrame(), &event, false, &status);
   }
 
-  if (gfxPrefs::TestEventsAsyncEnabled()) {
+  if (aToChrome||
+      gfxPrefs::TestEventsAsyncEnabled()) {
     status = widget->DispatchInputEvent(&event, aObserver);
   } else {
     nsresult rv = widget->DispatchEvent(&event, status);

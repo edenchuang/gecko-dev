@@ -96,7 +96,9 @@ protected:
                                   bool *aPreventDefault,
                                   bool aIsDOMEventSynthesized,
                                   bool aIsWidgetEventSynthesized,
-                                  int32_t aButtons);
+                                  int32_t aButtons,
+                                  bool aToChrome,
+                                  nsIObserver *aObserver);
 
   NS_IMETHOD SendPointerEventCommon(const nsAString& aType,
                                     float aX,
@@ -130,7 +132,9 @@ protected:
                                   int32_t aModifiers,
                                   bool aIgnoreRootScrollFrame,
                                   bool aToWindow,
-                                  bool* aPreventDefault);
+                                  bool* aPreventDefault,
+                                  bool aToChrome,
+                                  nsIObserver *aObserver);
 };
 
 #endif
