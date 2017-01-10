@@ -127,13 +127,15 @@ struct ParamTraits<mozilla::WidgetInputEvent>
   {
     WriteParam(aMsg, static_cast<mozilla::WidgetGUIEvent>(aParam));
     WriteParam(aMsg, aParam.mModifiers);
+    WriteParam(aMsg, aParam.mObserverId);
   }
 
   static bool Read(const Message* aMsg, PickleIterator* aIter, paramType* aResult)
   {
     return ReadParam(aMsg, aIter,
                      static_cast<mozilla::WidgetGUIEvent*>(aResult)) &&
-           ReadParam(aMsg, aIter, &aResult->mModifiers);
+           ReadParam(aMsg, aIter, &aResult->mModifiers) &&
+           ReadParam(aMsg, aIter, &aResult->mObserverId);
   }
 };
 

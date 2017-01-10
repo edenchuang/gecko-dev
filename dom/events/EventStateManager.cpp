@@ -3915,6 +3915,10 @@ CreateMouseOrPointerWidgetEvent(WidgetMouseEvent* aMouseEvent,
   aNewEvent->mPluginEvent = aMouseEvent->mPluginEvent;
   aNewEvent->inputSource = aMouseEvent->inputSource;
   aNewEvent->pointerId = aMouseEvent->pointerId;
+
+  if (aMouseEvent->mMessage == aMessage) {
+    aNewEvent->mObserverId = aMouseEvent->mObserverId;
+  }
 }
 
 nsIFrame*

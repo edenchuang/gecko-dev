@@ -178,6 +178,7 @@ public:
     mTouches.AppendElements(aOther.mTouches);
     mFlags.mCancelable = mMessage != eTouchCancel;
     mFlags.mHandledByAPZ = aOther.mFlags.mHandledByAPZ;
+    mObserverId = aOther.mObserverId;
   }
 
   WidgetTouchEvent(bool aIsTrusted, EventMessage aMessage, nsIWidget* aWidget)
@@ -200,6 +201,7 @@ public:
     WidgetTouchEvent* result = new WidgetTouchEvent(false, mMessage, nullptr);
     result->AssignTouchEventData(*this, true);
     result->mFlags = mFlags;
+    result->mObserverId = mObserverId;
     return result;
   }
 

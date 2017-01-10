@@ -964,11 +964,13 @@ protected:
                    EventClassID aEventClassID)
     : WidgetGUIEvent(aIsTrusted, aMessage, aWidget, aEventClassID)
     , mModifiers(0)
+    , mObserverId(0)
   {
   }
 
   WidgetInputEvent()
     : mModifiers(0)
+    , mObserverId(0)
   {
   }
 
@@ -978,6 +980,7 @@ public:
   WidgetInputEvent(bool aIsTrusted, EventMessage aMessage, nsIWidget* aWidget)
     : WidgetGUIEvent(aIsTrusted, aMessage, aWidget, eInputEventClass)
     , mModifiers(0)
+    , mObserverId(0)
   {
   }
 
@@ -1105,12 +1108,14 @@ public:
   }
 
   Modifiers mModifiers;
+  uint32_t mObserverId;
 
   void AssignInputEventData(const WidgetInputEvent& aEvent, bool aCopyTargets)
   {
     AssignGUIEventData(aEvent, aCopyTargets);
 
     mModifiers = aEvent.mModifiers;
+    mObserverId = aEvent.mObserverId;
   }
 };
 
