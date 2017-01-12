@@ -8318,10 +8318,14 @@ nsContentUtils::SendMouseEvent(const nsCOMPtr<nsIPresShell>& aPresShell,
     }
     return presShell->HandleEvent(view->GetFrame(), &event, false, &status);
   }
+
   if (gfxPrefs::TestEventsAsyncEnabled()) {
-    status = widget->DispatchInputEvent(&event);
+    status = widget->DispatchInputEvent(&event, aObserver);
   } else {
     nsresult rv = widget->DispatchEvent(&event, status);
+    if (aObserver) {
+      aObserver->Observe(nullptr, "InputEvent", nullptr);
+    }
     NS_ENSURE_SUCCESS(rv, rv);
   }
   if (aPreventDefault) {

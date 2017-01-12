@@ -203,7 +203,7 @@ TextEventDispatcher::DispatchInputEvent(nsIWidget* aWidget,
   // expecting synchronous dispatch) don't want this to do that.
   nsresult rv = NS_OK;
   if (ShouldSendInputEventToAPZ()) {
-    aStatus = widget->DispatchInputEvent(&aEvent);
+    aStatus = widget->DispatchInputEvent(&aEvent, nullptr);
   } else {
     rv = widget->DispatchEvent(&aEvent, aStatus);
   }

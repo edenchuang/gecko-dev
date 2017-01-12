@@ -140,7 +140,8 @@ public:
                  LayoutDeviceIntPoint* aPoint = nullptr);
 
   NS_IMETHOD DispatchEvent(WidgetGUIEvent* aEvent, nsEventStatus& aStatus) override;
-  nsEventStatus DispatchInputEvent(WidgetInputEvent* aEvent) override;
+  nsEventStatus DispatchInputEvent(WidgetInputEvent* aEvent,
+                                   nsIObserver* aObserver) override;
   void SetConfirmedTargetAPZC(uint64_t aInputBlockId,
                               const nsTArray<ScrollableLayerGuid>& aTargets) const override;
   void UpdateZoomConstraints(const uint32_t& aPresShellId,

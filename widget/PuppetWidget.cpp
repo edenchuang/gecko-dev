@@ -366,8 +366,12 @@ PuppetWidget::DispatchEvent(WidgetGUIEvent* event, nsEventStatus& aStatus)
 }
 
 nsEventStatus
-PuppetWidget::DispatchInputEvent(WidgetInputEvent* aEvent)
+PuppetWidget::DispatchInputEvent(WidgetInputEvent* aEvent,
+                                 nsIObserver* aObserver)
 {
+  AutoObserverNotifier notifier(aObserver, "InputEvent");
+  aEvent->mObserverId = notifier.SaveObserver();
+
   if (!AsyncPanZoomEnabled()) {
     nsEventStatus status = nsEventStatus_eIgnore;
     DispatchEvent(aEvent, status);

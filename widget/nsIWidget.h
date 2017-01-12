@@ -1358,7 +1358,8 @@ class nsIWidget : public nsISupports
      * enabled. If invoked in the child process, it is forwarded to the
      * parent process synchronously.
      */
-    virtual nsEventStatus DispatchInputEvent(mozilla::WidgetInputEvent* aEvent) = 0;
+    virtual nsEventStatus DispatchInputEvent(mozilla::WidgetInputEvent* aEvent,
+                                             nsIObserver* aObserver) = 0;
 
     /**
      * Confirm an APZ-aware event target. This should be used when APZ will

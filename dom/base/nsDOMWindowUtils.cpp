@@ -912,7 +912,7 @@ nsDOMWindowUtils::SendWheelEvent(float aX,
   wheelEvent.mRefPoint =
     nsContentUtils::ToWidgetPoint(CSSPoint(aX, aY), offset, presContext);
 
-  widget->DispatchInputEvent(&wheelEvent);
+  widget->DispatchInputEvent(&wheelEvent, nullptr);
 
   if (widget->AsyncPanZoomEnabled()) {
     // Computing overflow deltas is not compatible with APZ, so if APZ is
@@ -1071,6 +1071,7 @@ nsDOMWindowUtils::SendTouchEventCommon(const nsAString& aType,
 
   nsresult rv = widget->DispatchEvent(&event, status);
   *aPreventDefault = (status == nsEventStatus_eConsumeNoDefault);
+
   return rv;
 }
 

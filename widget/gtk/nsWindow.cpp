@@ -2541,7 +2541,7 @@ nsWindow::OnEnterNotifyEvent(GdkEventCrossing *aEvent)
 
     LOG(("OnEnterNotify: %p\n", (void *)this));
 
-    DispatchInputEvent(&event);
+    DispatchInputEvent(&event, nullptr);;
 }
 
 // XXX Is this the right test for embedding cases?
@@ -2584,7 +2584,7 @@ nsWindow::OnLeaveNotifyEvent(GdkEventCrossing *aEvent)
 
     LOG(("OnLeaveNotify: %p\n", (void *)this));
 
-    DispatchInputEvent(&event);
+    DispatchInputEvent(&event, nullptr);;
 }
 
 template <typename Event> static LayoutDeviceIntPoint
@@ -2668,7 +2668,7 @@ nsWindow::OnMotionNotifyEvent(GdkEventMotion *aEvent)
 
     KeymapWrapper::InitInputEvent(event, modifierState);
 
-    DispatchInputEvent(&event);
+    DispatchInputEvent(&event, nullptr);;
 }
 
 // If the automatic pointer grab on ButtonPress has deactivated before
@@ -2718,7 +2718,7 @@ nsWindow::DispatchMissedButtonReleases(GdkEventCrossing *aGdkEvent)
             WidgetMouseEvent synthEvent(true, eMouseUp, this,
                                         WidgetMouseEvent::eSynthesized);
             synthEvent.button = buttonType;
-            DispatchInputEvent(&synthEvent);
+            DispatchInputEvent(&synthEvent, nullprt);
         }
     }
 }
@@ -2839,7 +2839,7 @@ nsWindow::OnButtonPressEvent(GdkEventButton *aEvent)
     InitButtonEvent(event, aEvent);
     event.pressure = mLastMotionPressure;
 
-    DispatchInputEvent(&event);
+    DispatchInputEvent(&event, nullptr);;
 
     // right menu click on linux should also pop up a context menu
     if (domButton == WidgetMouseEvent::eRightButton &&
@@ -2848,7 +2848,7 @@ nsWindow::OnButtonPressEvent(GdkEventButton *aEvent)
                                           WidgetMouseEvent::eReal);
         InitButtonEvent(contextMenuEvent, aEvent);
         contextMenuEvent.pressure = mLastMotionPressure;
-        DispatchInputEvent(&contextMenuEvent);
+        DispatchInputEvent(&contextMenuEvent, nullptr);
     }
 }
 
@@ -2882,7 +2882,7 @@ nsWindow::OnButtonReleaseEvent(GdkEventButton *aEvent)
     gdk_event_get_axis ((GdkEvent*)aEvent, GDK_AXIS_PRESSURE, &pressure);
     event.pressure = pressure ? pressure : mLastMotionPressure;
 
-    DispatchInputEvent(&event);
+    DispatchInputEvent(&event, nullptr);;
     mLastMotionPressure = pressure;
 }
 
@@ -3149,7 +3149,7 @@ nsWindow::OnKeyPressEvent(GdkEventKey *aEvent)
         contextMenuEvent.AssignEventTime(GetWidgetEventTime(aEvent->time));
         contextMenuEvent.mClickCount = 1;
         KeymapWrapper::InitInputEvent(contextMenuEvent, aEvent->state);
-        DispatchInputEvent(&contextMenuEvent);
+        DispatchInputEvent(&contextMenuEvent, nullptr);
     } else {
         RefPtr<TextEventDispatcher> dispatcher = GetTextEventDispatcher();
         nsresult rv = dispatcher->BeginNativeInputTransaction();
@@ -3258,7 +3258,7 @@ nsWindow::OnScrollEvent(GdkEventScroll *aEvent)
 
     wheelEvent.AssignEventTime(GetWidgetEventTime(aEvent->time));
 
-    DispatchInputEvent(&wheelEvent);
+    DispatchInputEvent(&wheelEvent, nullptr);
 }
 
 void
@@ -3419,7 +3419,7 @@ nsWindow::DispatchDragEvent(EventMessage aMsg, const LayoutDeviceIntPoint& aRefP
     event.mRefPoint = aRefPoint;
     event.AssignEventTime(GetWidgetEventTime(aTime));
 
-    DispatchInputEvent(&event);
+    DispatchInputEvent(&event, nullptr);;
 }
 
 void
@@ -3493,7 +3493,7 @@ nsWindow::OnTouchEvent(GdkEventTouch* aEvent)
         *event.mTouches.AppendElement() = touch.forget();
     }
 
-    DispatchInputEvent(&event);
+    DispatchInputEvent(&event, nullptr);;
     return TRUE;
 }
 #endif

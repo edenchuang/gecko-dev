@@ -4499,7 +4499,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
   else
     geckoEvent.button = WidgetMouseEvent::eLeftButton;
 
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
   mBlockedLastMouseDown = NO;
 
   // XXX maybe call markedTextSelectionChanged:client: here?
@@ -4529,7 +4529,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
 
   // This might destroy our widget (and null out mGeckoChild).
   bool defaultPrevented =
-    (mGeckoChild->DispatchInputEvent(&geckoEvent) == nsEventStatus_eConsumeNoDefault);
+    (mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr) == nsEventStatus_eConsumeNoDefault);
 
   // Check to see if we are double-clicking in the titlebar.
   CGFloat locationInTitlebar = [[self window] frame].size.height - [theEvent locationInWindow].y;
@@ -4584,7 +4584,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
                               WidgetMouseEvent::eReal);
   [self convertCocoaMouseEvent:theEvent toGeckoEvent:&geckoEvent];
 
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
 
   NS_OBJC_END_TRY_ABORT_BLOCK;
 }
@@ -4605,7 +4605,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
                               WidgetMouseEvent::eReal);
   [self convertCocoaMouseEvent:theEvent toGeckoEvent:&geckoEvent];
 
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
 
   // Note, sending the above event might have destroyed our widget since we didn't retain.
   // Fine so long as we don't access any local variables from here on.
@@ -4636,7 +4636,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
   geckoEvent.button = WidgetMouseEvent::eRightButton;
   geckoEvent.mClickCount = [theEvent clickCount];
 
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
   if (!mGeckoChild)
     return;
 
@@ -4663,7 +4663,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
   geckoEvent.mClickCount = [theEvent clickCount];
 
   nsAutoRetainCocoaObject kungFuDeathGrip(self);
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
 
   NS_OBJC_END_TRY_ABORT_BLOCK;
 }
@@ -4683,7 +4683,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
 
   // send event into Gecko by going directly to the
   // the widget.
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
 }
 
 - (void)otherMouseDown:(NSEvent *)theEvent
@@ -4708,7 +4708,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
   geckoEvent.button = WidgetMouseEvent::eMiddleButton;
   geckoEvent.mClickCount = [theEvent clickCount];
 
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
 
   NS_OBJC_END_TRY_ABORT_BLOCK;
 }
@@ -4727,7 +4727,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
   geckoEvent.button = WidgetMouseEvent::eMiddleButton;
 
   nsAutoRetainCocoaObject kungFuDeathGrip(self);
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
 }
 
 - (void)otherMouseDragged:(NSEvent*)theEvent
@@ -4745,7 +4745,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
 
   // send event into Gecko by going directly to the
   // the widget.
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
 }
 
 - (void)sendWheelStartOrStop:(EventMessage)msg forEvent:(NSEvent *)theEvent
@@ -4753,7 +4753,7 @@ NSEvent* gLastDragMouseDownEvent = nil;
   WidgetWheelEvent wheelEvent(true, msg, mGeckoChild);
   [self convertCocoaMouseWheelEvent:theEvent toGeckoEvent:&wheelEvent];
   mExpectingWheelStop = (msg == eWheelOperationStart);
-  mGeckoChild->DispatchInputEvent(wheelEvent.AsInputEvent());
+  mGeckoChild->DispatchInputEvent(wheelEvent.AsInputEvent(), nullptr);
 }
 
 - (void)sendWheelCondition:(BOOL)condition
@@ -5093,7 +5093,7 @@ GetIntegerDeltaForEvent(NSEvent* aEvent)
                               WidgetMouseEvent::eReal);
   [self convertCocoaMouseEvent:theEvent toGeckoEvent:&geckoEvent];
   geckoEvent.button = WidgetMouseEvent::eRightButton;
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
   if (!mGeckoChild)
     return nil;
 
@@ -5511,7 +5511,7 @@ GetIntegerDeltaForEvent(NSEvent* aEvent)
   WidgetMouseEvent geckoEvent(true, eMouseActivate, mGeckoChild,
                               WidgetMouseEvent::eReal);
   [self convertCocoaMouseEvent:aEvent toGeckoEvent:&geckoEvent];
-  return (mGeckoChild->DispatchInputEvent(&geckoEvent) != nsEventStatus_eConsumeNoDefault);
+  return (mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr) != nsEventStatus_eConsumeNoDefault);
 }
 
 // We must always call through to our superclass, even when mGeckoChild is
@@ -5692,7 +5692,7 @@ GetIntegerDeltaForEvent(NSEvent* aEvent)
   geckoEvent.mRefPoint = [self convertWindowCoordinates:draggingLoc];
 
   nsAutoRetainCocoaObject kungFuDeathGrip(self);
-  mGeckoChild->DispatchInputEvent(&geckoEvent);
+  mGeckoChild->DispatchInputEvent(&geckoEvent, nullptr);
   if (!mGeckoChild)
     return NSDragOperationNone;
 

@@ -1155,7 +1155,7 @@ TabParent::RecvDispatchWheelEvent(const mozilla::WidgetWheelEvent& aEvent)
   localEvent.mWidget = widget;
   localEvent.mRefPoint -= GetChildProcessOffset();
 
-  widget->DispatchInputEvent(&localEvent);
+  widget->DispatchInputEvent(&localEvent, nullptr);
   return IPC_OK();
 }
 
@@ -1171,7 +1171,7 @@ TabParent::RecvDispatchMouseEvent(const mozilla::WidgetMouseEvent& aEvent)
   localEvent.mWidget = widget;
   localEvent.mRefPoint -= GetChildProcessOffset();
 
-  widget->DispatchInputEvent(&localEvent);
+  widget->DispatchInputEvent(&localEvent, nullptr);
   return IPC_OK();
 }
 
@@ -1189,7 +1189,7 @@ TabParent::RecvDispatchTouchEvent(const mozilla::WidgetTouchEvent& aEvent)
     localEvent.mTouches[i]->mRefPoint -= GetChildProcessOffset();
   }
 
-  widget->DispatchInputEvent(&localEvent);
+  widget->DispatchInputEvent(&localEvent, nullptr);
   return IPC_OK();
 }
 
@@ -1205,7 +1205,7 @@ TabParent::RecvDispatchKeyboardEvent(const mozilla::WidgetKeyboardEvent& aEvent)
   localEvent.mWidget = widget;
   localEvent.mRefPoint -= GetChildProcessOffset();
 
-  widget->DispatchInputEvent(&localEvent);
+  widget->DispatchInputEvent(&localEvent, nullptr);
   return IPC_OK();
 }
 

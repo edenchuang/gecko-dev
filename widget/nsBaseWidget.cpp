@@ -1200,8 +1200,11 @@ nsBaseWidget::DispatchTouchInput(MultiTouchInput& aInput)
 }
 
 nsEventStatus
-nsBaseWidget::DispatchInputEvent(WidgetInputEvent* aEvent)
+nsBaseWidget::DispatchInputEvent(WidgetInputEvent* aEvent,
+                                 nsIObserver* aObserver)
 {
+  AutoObserverNotifier notifier(aObserver, "InputEvent");
+
   MOZ_ASSERT(NS_IsMainThread());
   if (mAPZC) {
     if (APZThreadUtils::IsControllerThread()) {
