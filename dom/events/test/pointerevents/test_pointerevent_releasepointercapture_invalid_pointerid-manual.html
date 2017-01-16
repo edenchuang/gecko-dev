@@ -19,8 +19,8 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=1000870
       function executeTest(int_win) {
         return Promise.resolve()
           .then(() => sendTouchEvent(int_win, "target0", "touchstart"))
-          .then(() => sendTouchEvent(int_win, "target0", "touchmove"))
-          .then(() => sendTouchEvent(int_win, "target0", "touchend"));
+          .then(() => sendTouchEvent(int_win, "target0", "touchmove", {offsetX: 10, offsetY: 10}))
+          .then(() => sendTouchEvent(int_win, "target0", "touchend",  {offsetX: 10, offsetY: 10}));
       }
     </script>
   </head>
