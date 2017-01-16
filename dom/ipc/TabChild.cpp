@@ -1689,6 +1689,7 @@ TabChild::RecvRealTouchEvent(const WidgetTouchEvent& aEvent,
       aApzResponse, status);
 
   // Notify the saved observer for that this event is handled.
+  printf_stderr("DS: %d, %d\n", aEvent.mMessage, aEvent.mObserverId);
   AutoObserverNotifier::NotifySavedObserver(aEvent.mObserverId,
                                             "RecvRealTouchEvent");
   return IPC_OK();

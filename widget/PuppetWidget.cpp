@@ -392,6 +392,8 @@ PuppetWidget::DispatchInputEvent(WidgetInputEvent* aEvent,
         mTabChild->SendDispatchMouseEvent(*aEvent->AsMouseEvent());
       break;
     case eTouchEventClass:
+      printf_stderr("DS: %d, %d\n", aEvent->mMessage,
+                                    aEvent->mObserverId);
       Unused <<
         mTabChild->SendDispatchTouchEvent(*aEvent->AsTouchEvent());
       break;
