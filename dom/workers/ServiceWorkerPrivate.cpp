@@ -14,6 +14,7 @@
 #include "nsINetworkInterceptController.h"
 #include "nsIPushErrorReporter.h"
 #include "nsISupportsImpl.h"
+#include "nsITimedChannel.h"
 #include "nsIUploadChannel2.h"
 #include "nsNetUtil.h"
 #include "nsProxyRelease.h"
@@ -1474,6 +1475,8 @@ public:
   WorkerRun(JSContext* aCx, WorkerPrivate* aWorkerPrivate) override
   {
     MOZ_ASSERT(aWorkerPrivate);
+
+    mInterceptedChannel->SetDispatchFetchEventEnd(TimeStamp::Now());
     return DispatchFetchEvent(aCx, aWorkerPrivate);
   }
 
@@ -1502,6 +1505,10 @@ private:
     NS_IMETHOD Run() override
     {
       AssertIsOnMainThread();
+
+      mChannel->SetHandleFetchEventEnd(TimeStamp::Now());
+      mChannel->SaveTimeStampsToUnderlyingChannel();
+
       nsresult rv = mChannel->ResetInterception();
       NS_WARNING_ASSERTION(NS_SUCCEEDED(rv),
                            "Failed to resume intercepted network request");
@@ -1577,6 +1584,8 @@ private:
     event->PostInit(mInterceptedChannel, mRegistration, mScriptSpec);
     event->SetTrusted(true);
 
+    mInterceptedChannel->SetHandleFetchEventStart(TimeStamp::Now());
+
     nsresult rv2 =
       DispatchExtendableEventOnWorkerScope(aCx, aWorkerPrivate->GlobalScope(),
                                            event, nullptr);
@@ -1647,8 +1656,12 @@ ServiceWorkerPrivate::SendFetchEvent(nsIInterceptedChannel* aChannel,
   nsCOMPtr<nsIRunnable> failRunnable =
     NewRunnableMethod(aChannel, &nsIInterceptedChannel::ResetInterception);
 
+  aChannel->SetLaunchServiceWorkerStart(TimeStamp::Now());
+
   nsresult rv = SpawnWorkerIfNeeded(FetchEvent, failRunnable, aLoadGroup);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  aChannel->SetLaunchServiceWorkerEnd(TimeStamp::Now());
 
   nsMainThreadPtrHandle<nsIInterceptedChannel> handle(
     new nsMainThreadPtrHolder<nsIInterceptedChannel>(aChannel, false));
@@ -1657,6 +1670,8 @@ ServiceWorkerPrivate::SendFetchEvent(nsIInterceptedChannel* aChannel,
     new nsMainThreadPtrHolder<ServiceWorkerRegistrationInfo>(registration, false));
 
   RefPtr<KeepAliveToken> token = CreateEventKeepAliveToken();
+
+  aChannel->SetDispatchFetchEventStart(TimeStamp::Now());
 
   RefPtr<FetchEventRunnable> r =
     new FetchEventRunnable(mWorkerPrivate, token, handle,
