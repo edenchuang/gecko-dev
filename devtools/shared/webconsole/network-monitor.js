@@ -812,6 +812,17 @@ NetworkMonitor.prototype = {
   },
 
   _serviceWorkerRequest: function (subject, topic, data) {
+    let timedChannel = subject.QueryInterface(Ci.nsITimedChannel);
+    dump("HP: " + '\n');
+    dump("HP: " + timedChannel.launchServiceWorkerStartTime + '\n');
+    dump("HP: " + timedChannel.launchServiceWorkerEndTime + '\n');
+
+    dump("HP: " + timedChannel.dispatchFetchEventStartTime + '\n');
+    dump("HP: " + timedChannel.dispatchFetchEventEndTime + '\n');
+
+    dump("HP: " + timedChannel.handleFetchEventStartTime + '\n');
+    dump("HP: " + timedChannel.handleFetchEventEndTime + '\n');
+
     let channel = subject.QueryInterface(Ci.nsIHttpChannel);
 
     if (!matchRequest(channel, this.filters)) {
@@ -840,6 +851,19 @@ NetworkMonitor.prototype = {
     // headers. The data retrieved is stored in openResponses. The
     // NetworkResponseListener is responsible with updating the httpActivity
     // object with the data from the new object in openResponses.
+
+    let tempchannel = subject.QueryInterface(Ci.nsIChannel);
+    dump("HP: " + tempchannel.URI.spec + '\n');
+
+    let timedChannel = subject.QueryInterface(Ci.nsITimedChannel);
+    dump("HP: " + timedChannel.launchServiceWorkerStartTime + '\n');
+    dump("HP: " + timedChannel.launchServiceWorkerEndTime + '\n');
+
+    dump("HP: " + timedChannel.dispatchFetchEventStartTime + '\n');
+    dump("HP: " + timedChannel.dispatchFetchEventEndTime + '\n');
+
+    dump("HP: " + timedChannel.handleFetchEventStartTime + '\n');
+    dump("HP: " + timedChannel.handleFetchEventEndTime + '\n');
 
     if (!this.owner ||
         (topic != "http-on-examine-response" &&
