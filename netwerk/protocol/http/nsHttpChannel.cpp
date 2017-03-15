@@ -5347,6 +5347,16 @@ nsHttpChannel::SetupReplacementChannel(nsIURI       *newURI,
         }
     }
 
+    nsCOMPtr<nsITimedChannel> timedChannel = do_QueryInterface(newChannel);
+    if (timedChannel) {
+      timedChannel->SetLaunchServiceWorkerStart(mLaunchServiceWorkerStart);
+      timedChannel->SetLaunchServiceWorkerEnd(mLaunchServiceWorkerEnd);
+      timedChannel->SetDispatchFetchEventStart(mDispatchFetchEventStart);
+      timedChannel->SetDispatchFetchEventEnd(mDispatchFetchEventEnd);
+      timedChannel->SetHandleFetchEventStart(mHandleFetchEventStart);
+      timedChannel->SetHandleFetchEventEnd(mHandleFetchEventEnd);
+    }
+
     return NS_OK;
 }
 
