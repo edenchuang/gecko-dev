@@ -149,7 +149,13 @@ protected:
               const nsCString&           aChannelId,
               const uint64_t&            aContentWindowId,
               const nsCString&           aPreferredAlternativeType,
-              const uint64_t&            aTopLevelOuterContentWindowId);
+              const uint64_t&            aTopLevelOuterContentWindowId,
+              const TimeStamp&           aLaunchServiceWorkerStart,
+              const TimeStamp&           aLaunchServiceWorkerEnd,
+              const TimeStamp&           aDispatchFetchEventStart,
+              const TimeStamp&           aDispatchFetchEventEnd,
+              const TimeStamp&           aHandleFetchEventStart,
+              const TimeStamp&           aHandleFetchEventEnd);
 
   virtual mozilla::ipc::IPCResult RecvSetPriority(const int16_t& priority) override;
   virtual mozilla::ipc::IPCResult RecvSetClassOfService(const uint32_t& cos) override;
