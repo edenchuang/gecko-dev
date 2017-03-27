@@ -637,12 +637,6 @@ CompareNetwork::Initialize(nsIPrincipal* aPrincipal, const nsAString& aURL, nsIL
     return rv;
   }
 
-  nsCOMPtr<nsILoadGroup> loadGroup;
-  rv = NS_NewLoadGroup(getter_AddRefs(loadGroup), aPrincipal);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
   nsLoadFlags flags = nsIChannel::LOAD_BYPASS_SERVICE_WORKER;
   RefPtr<ServiceWorkerRegistrationInfo> registration =
     mManager->GetRegistration();
@@ -661,7 +655,7 @@ CompareNetwork::Initialize(nsIPrincipal* aPrincipal, const nsAString& aURL, nsIL
                      uri, aPrincipal,
                      nsILoadInfo::SEC_REQUIRE_SAME_ORIGIN_DATA_IS_BLOCKED,
                      nsIContentPolicy::TYPE_INTERNAL_SERVICE_WORKER,
-                     loadGroup,
+                     aLoadGroup,
                      nullptr, // aCallbacks
                      flags);
   if (NS_WARN_IF(NS_FAILED(rv))) {
