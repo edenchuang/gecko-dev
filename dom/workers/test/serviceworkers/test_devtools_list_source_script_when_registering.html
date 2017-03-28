@@ -1,0 +1,114 @@
+<!--
+  Any copyright is dedicated to the Public Domain.
+  http://creativecommons.org/publicdomain/zero/1.0/
+-->
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Bug 1267119 - test devtools list source script when registering.</title>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"></script>
+  <link rel="stylesheet"
+        type="text/css"
+        href="chrome://mochikit/content/tests/SimpleTest/test.css"?>
+</head>
+<body>
+<p id="display"></p>
+<div id="content" style="display: none"></div>
+<pre id="test"></pre>
+<script class="testbody" type="text/javascript">
+
+// Constants
+const {classes: Cc, interfaces: Ci, utils: Cu } = Components;
+const workerScope = "http://mochi.test:8888/chrome/dom/workers/test/serviceworkers/";
+const contentPage = workerScope + "hello.html";
+
+function createTestWindow(aURL) {
+  var mainwindow = window.QueryInterface(Ci.nsIInterfaceRequestor)
+                         .getInterface(Ci.nsIWebNavigation)
+                         .QueryInterface(Ci.nsIDocShellTreeItem)
+                         .rootTreeItem
+                         .QueryInterface(Ci.nsIInterfaceRequestor)
+                         .getInterface(Ci.nsIDOMWindow);
+  var win = mainwindow.OpenBrowserWindow(contentPage);
+
+  return new Promise(aResolve => {
+    win.addEventListener("DOMContentLoaded", function callback() {
+      if (win.content.location.href != aURL) {
+        win.gBrowser.loadURI(aURL);
+        return;
+      }
+
+      win.removeEventListener("DOMContentLoaded", callback);
+      aResolve(win.content);
+    });
+  });
+}
+
+function executeTest(aWindow) {
+  return Promise.resolve()
+    // Test with an invalid URL.
+    .then(_ => registerWithTest(aWindow, workerScope + "faked.js", true))
+
+    // Test with a valid URL.
+    .then(_ => registerWithTest(aWindow, workerScope + "fetch.js", false))
+}
+
+function register(aWindow, aURL, aScope) {
+  return aWindow.navigator.serviceWorker.register(aURL)
+    .then(r => {
+      var worker = r.installing;
+      return new Promise(function(aResolve) {
+        worker.onstatechange = function() {
+          if (worker.state == "activated") {
+            aResolve(r);
+          }
+        }
+      });
+    });
+}
+
+function registerWithTest(aWindow, aURL, aShouldFail) {
+  // Promise for testing.
+  var resolveFunction;
+  var promise_testing = new Promise(aResolve => resolveFunction = aResolve);
+
+  function observer(aSubject) {
+    var channel = aSubject.QueryInterface(Ci.nsIChannel);
+    ok(channel.URI.spec.endsWith(aURL));
+    SpecialPowers.removeObserver(observer, "http-on-examine-response");
+    resolveFunction();
+  }
+
+  SpecialPowers.addObserver(observer, "http-on-examine-response", false);
+
+  // Promise for registering a service worker and unregister it.
+  var promise_registering = register(aWindow, aURL).then(r => r.unregister(),
+                                                         _ => ok(aShouldFail));
+
+  // Wait for both of the promises.
+  return Promise.all([promise_testing,
+                      promise_registering]);
+}
+
+function runTest() {
+  return Promise.resolve()
+    .then(_ => ok(true))
+    .then(_ => createTestWindow(contentPage))
+    .then(w => executeTest(w))
+    .catch(e => ok(false, "Some test failed with error " + e))
+    .then(_ => SimpleTest.finish());
+}
+
+SimpleTest.waitForExplicitFinish();
+SpecialPowers.pushPrefEnv({"set": [
+  ["dom.serviceWorkers.exemptFromPerDomainMax", true],
+  ["dom.serviceWorkers.enabled", true],
+  ["dom.serviceWorkers.testing.enabled", true],
+]}, runTest);
+
+</script>
+</pre>
+</body>
+</html>
+
