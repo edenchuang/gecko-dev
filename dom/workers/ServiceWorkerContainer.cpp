@@ -143,8 +143,7 @@ ServiceWorkerContainer::Register(const nsAString& aScriptURL,
   }
 
   nsCOMPtr<nsIURI> baseURI;
-
-  nsIDocument* doc = GetEntryDocument();
+  nsIDocument* doc = GetDocumentIfCurrent();
   if (doc) {
     baseURI = doc->GetBaseURI();
   } else {
