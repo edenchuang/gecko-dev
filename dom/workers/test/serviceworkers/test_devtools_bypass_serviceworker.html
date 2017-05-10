@@ -1,0 +1,132 @@
+<!--
+  Any copyright is dedicated to the Public Domain.
+  http://creativecommons.org/publicdomain/zero/1.0/
+-->
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Bug 1133763 - test fetch event in HTTPS origins</title>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"></script>
+  <link rel="stylesheet"
+        type="text/css"
+        href="chrome://mochikit/content/tests/SimpleTest/test.css"?>
+</head>
+<body>
+<p id="display"></p>
+<div id="content" style="display: none">
+</div>
+<pre id="test"></pre>
+<script class="testbody" type="text/javascript">
+
+// Constants
+const {classes: Cc, interfaces: Ci} = Components
+const swm = Cc["@mozilla.org/serviceworkers/manager;1"]
+            .getService(Ci.nsIServiceWorkerManager);
+
+const workerScope = "http://mochi.test:8888/chrome/dom/workers/test/serviceworkers/";
+const workerURL = workerScope + "fetch.js";
+const helloPage = workerScope + "hello.html";
+const fakePage = workerScope + "fake.html";
+
+function createTestWindow(aURL) {
+  var mainwindow = window.QueryInterface(Ci.nsIInterfaceRequestor)
+                         .getInterface(Ci.nsIWebNavigation)
+                         .QueryInterface(Ci.nsIDocShellTreeItem)
+                         .rootTreeItem
+                         .QueryInterface(Ci.nsIInterfaceRequestor)
+                         .getInterface(Ci.nsIDOMWindow);
+  var win = mainwindow.OpenBrowserWindow(aURL);
+
+  return new Promise(aResolve => {
+    win.addEventListener("DOMContentLoaded", function callback() {
+      if (win.content.location.href != aURL) {
+        win.gBrowser.loadURI(aURL);
+        return;
+      }
+
+      win.removeEventListener("DOMContentLoaded", callback);
+      aResolve(win.content);
+    });
+  });
+}
+
+function setupTestWindow(aWindow, aURL) {
+  return new Promise(aResolve => {
+    var iframe = aWindow.document.createElement("iframe");
+    iframe.src = aURL;
+    iframe.addEventListener("load", _ => aResolve(aWindow));
+    aWindow.document.body.appendChild(iframe);
+  });
+}
+
+function register(aWindow, aURL, aScope) {
+  return aWindow.navigator.serviceWorker.register(aURL, {scope: aScope})
+    .then(r => {
+      var worker = r.installing;
+      return new Promise(function(aResolve) {
+        worker.onstatechange = function() {
+          if (worker.state == "activated") {
+            aResolve(r);
+          }
+        }
+      });
+    });
+}
+
+function fetchAndCheck(aWindow, aShouldBeIntercepted) {
+  return Promise.resolve()
+    .then(_ => aWindow.fetch(fakePage))
+    .then(r => r.text())
+    .then(t => ok(t.indexOf(aShouldBeIntercepted ? "Hello" : "Fake") !== -1));
+}
+
+function executeTest(aWindow) {
+  var registration;
+  var windows = [aWindow, aWindow.frames[0]];
+
+  return Promise.resolve()
+    // Register a service worker which claims on evaluation.
+    .then(_ => register(aWindow, workerURL, workerScope))
+    .then(r => registration = r)
+
+    // Test swm.setBypassServiceWorker
+    .then(_ => windows.reduce((p, w) => {
+      return p
+        // Set bypass-service-worker.
+        .then(_ => swm.setBypassServiceWorker(w, true))
+        .then(_ => windows.map(w => is(swm.getBypassServiceWorker(w), true)))
+        .then(_ => Promise.all(windows.map(w => fetchAndCheck(w, false))))
+        // Unset bypass-service-worker.
+        .then(_ => swm.setBypassServiceWorker(w, false))
+        .then(_ => windows.map(w => is(swm.getBypassServiceWorker(w), false)))
+        .then(_ => Promise.all(windows.map(w => fetchAndCheck(w, true))));
+    }, Promise.resolve()))
+
+    // Tear down
+    .then(_ => registration.unregister());
+}
+
+function runTest() {
+  return Promise.resolve()
+    // Since Gecko doesn't permit loading an iframe of the same URL with its
+    // containing document, we have to use two different urls here.
+    .then(_ => createTestWindow(helloPage))
+    .then(w => setupTestWindow(w, fakePage))
+    .then(w => executeTest(w))
+
+    .catch(e => ok(false, "Some tests failed with error " + e))
+    .then(_ => SimpleTest.finish());
+}
+
+SimpleTest.waitForExplicitFinish();
+onload = function() {
+  SpecialPowers.pushPrefEnv({"set": [
+    ["dom.serviceWorkers.enabled", true],
+    ["dom.serviceWorkers.testing.enabled", true],
+  ]}, runTest);
+};
+</script>
+</pre>
+</body>
+</html>
