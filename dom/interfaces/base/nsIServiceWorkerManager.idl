@@ -232,6 +232,10 @@ interface nsIServiceWorkerManager : nsISupports
   void removeListener(in nsIServiceWorkerManagerListener aListener);
 
   bool shouldReportToWindow(in mozIDOMWindowProxy aWindow, in ACString aScope);
+
+  bool getBypassServiceWorker(in mozIDOMWindow aWindow);
+
+  void setBypassServiceWorker(in mozIDOMWindow aWindow, in bool aBypass);
 };
 
 %{ C++

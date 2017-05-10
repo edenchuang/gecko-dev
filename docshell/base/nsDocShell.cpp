@@ -14850,7 +14850,7 @@ nsDocShell::ShouldPrepareForIntercept(nsIURI* aURI, bool aIsNonSubresourceReques
   }
 
   ErrorResult rv;
-  *aShouldIntercept = swm->IsControlled(doc, rv);
+  *aShouldIntercept = swm->ShouldIntercept(doc, rv);
   if (NS_WARN_IF(rv.Failed())) {
     return rv.StealNSResult();
   }

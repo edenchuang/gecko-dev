@@ -108,6 +108,8 @@ public:
 
   nsRefPtrHashtable<nsISupportsHashKey, ServiceWorkerRegistrationInfo> mControlledDocuments;
 
+  nsTHashtable<nsISupportsHashKey> mBypassedWindows;
+
   // Track all documents that have attempted to register a service worker for a
   // given scope.
   typedef nsTArray<nsCOMPtr<nsIWeakReference>> WeakDocumentList;
@@ -130,6 +132,9 @@ public:
 
   bool
   IsControlled(nsIDocument* aDocument, ErrorResult& aRv);
+
+  bool
+  ShouldIntercept(nsIDocument* aDocument, ErrorResult& aRv);
 
   // Return true if the given content process could potentially be executing
   // service worker code with the given principal.  At the current time, this
@@ -528,6 +533,9 @@ private:
                         const nsAString& aIcon,
                         const nsAString& aData,
                         const nsAString& aBehavior);
+
+  already_AddRefed<nsPIDOMWindowOuter>
+  GetTopLevelOuterWindow(mozIDOMWindow* aWindow);
 };
 
 } // namespace workers

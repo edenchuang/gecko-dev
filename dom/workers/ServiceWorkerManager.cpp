@@ -2845,6 +2845,19 @@ ServiceWorkerManager::IsControlled(nsIDocument* aDoc, ErrorResult& aRv)
   return !!registration;
 }
 
+bool
+ServiceWorkerManager::ShouldIntercept(nsIDocument* aDoc, ErrorResult& aRv)
+{
+  nsCOMPtr<nsPIDOMWindowOuter> window = aDoc->GetWindow();
+  window = window ? window->GetTop() : nullptr;
+  if (window &&
+      mBypassedWindows.Contains(window)) {
+    return false;
+  }
+
+  return IsControlled(aDoc, aRv);
+}
+
 nsresult
 ServiceWorkerManager::GetDocumentRegistration(nsIDocument* aDoc,
                                               ServiceWorkerRegistrationInfo** aRegistrationInfo)
@@ -3954,6 +3967,51 @@ ServiceWorkerManager::ShouldReportToWindow(mozIDOMWindowProxy* aWindow,
   }
 
   // No match.  We should not report to this window.
+  return NS_OK;
+}
+
+already_AddRefed<nsPIDOMWindowOuter>
+ServiceWorkerManager::GetTopLevelOuterWindow(mozIDOMWindow* aWindow)
+{
+  nsCOMPtr<nsPIDOMWindowInner> innerWindow = do_QueryInterface(aWindow);
+  nsCOMPtr<nsPIDOMWindowOuter> outerWindow = innerWindow
+                                           ? innerWindow->GetOuterWindow()
+                                           : nullptr;
+  outerWindow = outerWindow
+              ? outerWindow->GetTop()
+              : nullptr;
+
+  return outerWindow.forget();
+}
+
+NS_IMETHODIMP
+ServiceWorkerManager::GetBypassServiceWorker(mozIDOMWindow* aWindow,
+                                             bool* aShouldBypass)
+{
+  nsCOMPtr<nsPIDOMWindowOuter> window = GetTopLevelOuterWindow(aWindow);
+  if (!window) {
+    return NS_ERROR_FAILURE;
+  }
+
+  *aShouldBypass = mBypassedWindows.Contains(window);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+ServiceWorkerManager::SetBypassServiceWorker(mozIDOMWindow* aWindow,
+                                             bool aShouldBypass)
+{
+  nsCOMPtr<nsPIDOMWindowOuter> window = GetTopLevelOuterWindow(aWindow);
+  if (!window) {
+    return NS_ERROR_FAILURE;
+  }
+
+  if (aShouldBypass) {
+    mBypassedWindows.PutEntry(window);
+    return NS_OK;
+  }
+
+  mBypassedWindows.RemoveEntry(window);
   return NS_OK;
 }
 
