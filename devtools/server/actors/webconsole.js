@@ -1924,6 +1924,7 @@ NetworkEventActor.prototype =
   _request: null,
   _response: null,
   _timings: null,
+  _details: null,
   _longStringActors: null,
 
   actorPrefix: "netEvent",
@@ -2102,6 +2103,7 @@ NetworkEventActor.prototype =
     return {
       from: this.actorID,
       timings: this._timings,
+      details: this._details,
       totalTime: this._totalTime
     };
   },
@@ -2309,11 +2311,14 @@ NetworkEventActor.prototype =
    * @param number total
    *        The total time of the network event.
    * @param object timings
-   *        Timing details about the network event.
+   *        Timing information about the network event.
+   * @param object details
+   *        More detailed timing information about the network event.
    */
-  addEventTimings: function (total, timings) {
+  addEventTimings: function (total, timings, details) {
     this._totalTime = total;
     this._timings = timings;
+    this._details = details;
 
     let packet = {
       from: this.actorID,

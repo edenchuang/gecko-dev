@@ -912,8 +912,10 @@ NetworkMonitor.prototype = {
 
       // There also is never any timing events, so we can fire this
       // event with zeroed out values.
-      let timings = this._setupHarTimings(httpActivity, true);
-      httpActivity.owner.addEventTimings(timings.total, timings.timings);
+      let timings = this._setupHarTimings(httpActivity, channel, true);
+      httpActivity.owner.addEventTimings(timings.total,
+                                         timings.timings,
+                                         timings.details);
     }
   },
 
@@ -973,7 +975,7 @@ NetworkMonitor.prototype = {
         this._onResponseHeader(httpActivity, extraStringData);
         break;
       case gActivityDistributor.ACTIVITY_SUBTYPE_TRANSACTION_CLOSE:
-        this._onTransactionClose(httpActivity);
+        this._onTransactionClose(httpActivity, channel);
         break;
       default:
         break;
@@ -1359,10 +1361,14 @@ NetworkMonitor.prototype = {
    * @private
    * @param object httpActivity
    *        The HTTP activity object we work with.
+   * @param object nsIHttpChannel
+   *        The HTTP channel object we work with.
    */
-  _onTransactionClose: function (httpActivity) {
-    let result = this._setupHarTimings(httpActivity);
-    httpActivity.owner.addEventTimings(result.total, result.timings);
+  _onTransactionClose: function (httpActivity, channel) {
+    let result = this._setupHarTimings(httpActivity, channel);
+    httpActivity.owner.addEventTimings(result.total,
+                                       result.timings,
+                                       result.details);
     this.openRequests.delete(httpActivity.channel);
   },
 
@@ -1375,6 +1381,8 @@ NetworkMonitor.prototype = {
    *
    * @param object httpActivity
    *        The HTTP activity object we are working with.
+   * @param object nsIHttpChannel
+   *        The underlying Necko channel carrying needed information.
    * @param boolean fromCache
    *        Indicates that the result was returned from the browser cache
    * @return object
@@ -1382,84 +1390,125 @@ NetworkMonitor.prototype = {
    *         - total - the total time for all of the request and response.
    *         - timings - the HAR timings object.
    */
-  _setupHarTimings: function (httpActivity, fromCache) {
+  _setupHarTimings: function (httpActivity, channel, fromCache) {
+    let harTimings = {};
+
+    let timedChannel = channel.QueryInterface(Ci.nsITimedChannel);
+    let details = {
+      serviceWorkerPreparation: {start: timedChannel.launchServiceWorkerStartTime,
+                                 end:   timedChannel.launchServiceWorkerEndTime},
+      requestToServiceWorker: {start: timedChannel.dispatchFetchEventStartTime,
+                               end:   timedChannel.dispatchFetchEventEndTime},
+      handledByServiceWorker: {start: timedChannel.handleFetchEventStartTime,
+                               end:   timedChannel.handleFetchEventEndTime}
+    };
+
+    ['serviceWorkerPreparation',
+     'requestToServiceWorker',
+     'handledByServiceWorker'].forEach(t => {
+      if (0 === details[t].start &&
+          0 === details[t].end) {
+        // Skip invalid entries.
+        delete details[t];
+      }
+    });
+
     if (fromCache) {
       // If it came from the browser cache, we have no timing
       // information and these should all be 0
+      ['blocked', 'dns', 'connect', 'send', 'wait', 'receive'].forEach(t => {
+        harTimings[t] = 0;
+      });
+
       return {
         total: 0,
-        timings: {
-          blocked: 0,
-          dns: 0,
-          connect: 0,
-          send: 0,
-          wait: 0,
-          receive: 0
-        }
+        timings: harTimings,
+        details: details
       };
     }
 
     let timings = httpActivity.timings;
-    let harTimings = {};
 
+    // details.blocked
     if (timings.STATUS_RESOLVING && timings.STATUS_CONNECTING_TO) {
-      harTimings.blocked = timings.STATUS_RESOLVING.first -
-                           timings.REQUEST_HEADER.first;
+      details.blocked = {start: timings.REQUEST_HEADER.first,
+                         end: timings.STATUS_RESOLVING.first};
     } else if (timings.STATUS_SENDING_TO) {
-      harTimings.blocked = timings.STATUS_SENDING_TO.first -
-                           timings.REQUEST_HEADER.first;
+      details.blocked = {start: timings.REQUEST_HEADER.first,
+                         end: timings.STATUS_SENDING_TO.first};
     } else {
-      harTimings.blocked = -1;
+      details.blocked = {start: 0, end: 0};
     }
 
+    // details.dns
     // DNS timing information is available only in when the DNS record is not
     // cached.
-    harTimings.dns = timings.STATUS_RESOLVING && timings.STATUS_RESOLVED ?
-                     timings.STATUS_RESOLVED.last -
-                     timings.STATUS_RESOLVING.first : -1;
+    if (timings.STATUS_RESOLVING && timings.STATUS_RESOLVED) {
+      details.dns = {start: timings.STATUS_RESOLVING.first,
+                     end: timings.STATUS_RESOLVED.last}
+    } else {
+      details.dns = {start: 0, end: 0};
+    }
 
+    // details.connect
     if (timings.STATUS_CONNECTING_TO && timings.STATUS_CONNECTED_TO) {
-      harTimings.connect = timings.STATUS_CONNECTED_TO.last -
-                           timings.STATUS_CONNECTING_TO.first;
+      details.connect = {start: timings.STATUS_CONNECTING_TO.first,
+                         end: timings.STATUS_CONNECTED_TO.last};
     } else {
-      harTimings.connect = -1;
+      details.connect = {start: 0, end: 0};
     }
 
+    // details.send
     if (timings.STATUS_SENDING_TO) {
-      harTimings.send = timings.STATUS_SENDING_TO.last - timings.STATUS_SENDING_TO.first;
+      details.send = {start: timings.STATUS_SENDING_TO.first,
+                      end: timings.STATUS_SENDING_TO.last};
     } else if (timings.REQUEST_HEADER && timings.REQUEST_BODY_SENT) {
-      harTimings.send = timings.REQUEST_BODY_SENT.last - timings.REQUEST_HEADER.first;
+      details.send = {start: timings.REQUEST_HEADER.first,
+                      end: timings.REQUEST_BODY_SENT.last};
     } else {
-      harTimings.send = -1;
+      details.send = {start: 0, end: 0};
     }
 
+    // details.wait
     if (timings.RESPONSE_START) {
-      harTimings.wait = timings.RESPONSE_START.first -
-                        (timings.REQUEST_BODY_SENT ||
-                         timings.STATUS_SENDING_TO).last;
+      details.wait = {start: (timings.REQUEST_BODY_SENT ||
+                              timings.STATUS_SENDING_TO).last,
+                      end: timings.RESPONSE_START.first};
     } else {
-      harTimings.wait = -1;
+      details.wait = {start: 0, end: 0};
     }
 
+    // details.receive
     if (timings.RESPONSE_START && timings.RESPONSE_COMPLETE) {
-      harTimings.receive = timings.RESPONSE_COMPLETE.last -
-                           timings.RESPONSE_START.first;
+      details.receive = {start: timings.RESPONSE_START.first,
+                         end: timings.RESPONSE_COMPLETE.last};
     } else {
-      harTimings.receive = -1;
+      details.receive = {start: 0, end: 0};
     }
 
+    // Compute harTimings.
     let totalTime = 0;
-    for (let timing in harTimings) {
-      let time = Math.max(Math.round(harTimings[timing] / 1000), -1);
-      harTimings[timing] = time;
-      if (time > -1) {
-        totalTime += time;
+    ["blocked", "dns", "connect", "send", "wait", "receive"].forEach(type => {
+      if (0 === details[type].start &&
+          0 === details[type].end) {
+        harTimings[type] = -1;
+
+        // Remove invalid entries.
+        delete details[type];
+
+        return;
       }
-    }
+
+      harTimings[type] = details[type].end - details[type].start;
+      harTimings[type] = Math.round(harTimings[type] / 1000);
+
+      totalTime += harTimings[type];
+    });
 
     return {
       total: totalTime,
       timings: harTimings,
+      details: details
     };
   },
 
