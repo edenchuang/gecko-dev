@@ -12,7 +12,15 @@ const { getNetMonitorTimingsURL } = require("../utils/mdn-utils");
 const MDNLink = require("./mdn-link");
 
 const { div, span } = DOM;
-const types = ["blocked", "dns", "connect", "send", "wait", "receive"];
+const types = ["serviceWorkerPreparation",
+               "requestToServiceWorker",
+               "handledByServiceWorker",
+               "blocked",
+               "dns",
+               "connect",
+               "send",
+               "wait",
+               "receive"];
 const TIMINGS_END_PADDING = "80px";
 
 /*
@@ -24,39 +32,49 @@ function TimingsPanel({ request }) {
     return null;
   }
 
-  const { timings, totalTime } = request.eventTimings;
-  const timelines = types.map((type, idx) => {
-    // Determine the relative offset for each timings box. For example, the
-    // offset of third timings box will be 0 + blocked offset + dns offset
-    const offset = types
-      .slice(0, idx)
-      .reduce((acc, cur) => (acc + timings[cur] || 0), 0);
-    const offsetScale = offset / totalTime || 0;
-    const timelineScale = timings[type] / totalTime || 0;
+  const details = request.eventTimings.details;
+  const bounds = types.filter(t => details[t]).reduce((acc, cur) => {
+    return {
+      min: Math.min(acc.min, details[cur].start),
+      max: Math.max(acc.max, details[cur].end)
+    };
+  }, {min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY});
 
+  const totalTime = bounds.max - bounds.min;
+
+  const timings = types.filter(t => details[t]).map(t => {
+    return {
+      type: t,
+      string: (details[t].end - details[t].start) / 1000,
+      offset: (details[t].start - bounds.min) / totalTime,
+      timeline: (details[t].end - details[t].start) / totalTime
+    };
+  });
+
+  const timelines = timings.map(timing => {
     return div({
-      key: type,
-      id: `timings-summary-${type}`,
+      key: timing.type,
+      id: `timings-summary-${timing.type}`,
       className: "tabpanel-summary-container timings-container",
     },
       span({ className: "tabpanel-summary-label timings-label" },
-        L10N.getStr(`netmonitor.timings.${type}`)
+        L10N.getStr(`netmonitor.timings.${timing.type}`)
       ),
       div({ className: "requests-list-timings-container" },
         span({
           className: "requests-list-timings-offset",
           style: {
-            width: `calc(${offsetScale} * (100% - ${TIMINGS_END_PADDING})`,
+            width: `calc(${timing.offset} * (100% - ${TIMINGS_END_PADDING})`,
           },
         }),
         span({
-          className: `requests-list-timings-box ${type}`,
+          className: `requests-list-timings-box ${timing.type}`,
           style: {
-            width: `calc(${timelineScale} * (100% - ${TIMINGS_END_PADDING}))`,
+            width: `calc(${timing.timeline} * (100% - ${TIMINGS_END_PADDING}))`,
           },
         }),
         span({ className: "requests-list-timings-total" },
-          L10N.getFormatStr("networkMenu.totalMS", timings[type])
+          L10N.getFormatStr("networkMenu.totalMS", timing.string)
         )
       ),
     );

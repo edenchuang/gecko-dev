@@ -17,6 +17,9 @@
   --table-splitter-color: rgba(255,255,255,0.15);
   --table-zebra-background: rgba(255,255,255,0.05);
 
+  --timing-serviceWorkerPreparation-color: rgba(255, 255, 255, 0.8);
+  --timing-requestToServiceWorker-color: rgba(255, 255, 255, 0.8);
+  --timing-handledByServiceWorker-color: rgba(255, 255, 255, 0.8);
   --timing-blocked-color: rgba(235, 83, 104, 0.8);
   --timing-dns-color: rgba(223, 128, 255, 0.8); /* pink */
   --timing-connect-color: rgba(217, 102, 41, 0.8); /* orange */
@@ -32,6 +35,9 @@
   --table-splitter-color: rgba(0,0,0,0.15);
   --table-zebra-background: rgba(0,0,0,0.05);
 
+  --timing-serviceWorkerPreparation-color: rgba(0, 0, 0, 0.8);
+  --timing-requestToServiceWorker-color: rgba(0, 0, 0, 0.8);
+  --timing-handledByServiceWorker-color: rgba(0, 0, 0, 0.8);
   --timing-blocked-color: rgba(235, 83, 104, 0.8);
   --timing-dns-color: rgba(223, 128, 255, 0.8); /* pink */
   --timing-connect-color: rgba(217, 102, 41, 0.8); /* orange */
@@ -666,6 +672,18 @@ body,
   height: 16px;
 }
 
+.requests-list-timings-box.serviceWorkerPreparation {
+  background-color: var(--timing-serviceWorkerPreparation-color);
+}
+
+.requests-list-timings-box.requestToServiceWorker {
+  background-color: var(--timing-requestToServiceWorker-color);
+}
+
+.requests-list-timings-box.handledByServiceWorker {
+  background-color: var(--timing-handledByServiceWorker-color);
+}
+
 .requests-list-timings-box.blocked {
   background-color: var(--timing-blocked-color);
 }
@@ -1003,7 +1021,7 @@ body,
 }
 
 .timings-label {
-  width: 10em;
+  width: 14em;
 }
 
 .requests-list-timings-container {
