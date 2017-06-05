@@ -1501,7 +1501,6 @@ NetworkMonitor.prototype = {
     }
 
     // Compute harTimings.
-    let totalTime = 0;
     ["blocked", "dns", "connect", "send", "wait", "receive"].forEach(type => {
       if (!details[type]) {
         harTimings[type] = -1;
