@@ -1398,8 +1398,8 @@ NetworkMonitor.prototype = {
     let timedChannel = channel.QueryInterface(Ci.nsITimedChannel);
 
     // details.launchServiceWorker
-    if (timedChannel.launchServiceWorkerStartTime &&
-        timedChannel.launchServiceWorkerEndTime) {
+    if (0 !== timedChannel.launchServiceWorkerStartTime &&
+        0 !== timedChannel.launchServiceWorkerEndTime) {
       details.serviceWorkerPreparation = {
         start: timedChannel.launchServiceWorkerStartTime,
         end:   timedChannel.launchServiceWorkerEndTime
@@ -1407,8 +1407,8 @@ NetworkMonitor.prototype = {
     }
 
     // details.requestToServiceWorker
-    if (timedChannel.dispatchFetchEventStartTime &&
-        timedChannel.dispatchFetchEventEndTime) {
+    if (0 !== timedChannel.dispatchFetchEventStartTime &&
+        0 !== timedChannel.dispatchFetchEventEndTime) {
       details.requestToServiceWorker = {
         start: timedChannel.dispatchFetchEventStartTime,
         end:   timedChannel.dispatchFetchEventEndTime
@@ -1416,8 +1416,8 @@ NetworkMonitor.prototype = {
     }
 
     // details.handledByServiceWorker
-    if (timedChannel.handleFetchEventStartTime &&
-        timedChannel.handleFetchEventEndTime) {
+    if (0 !== timedChannel.handleFetchEventStartTime &&
+        0 !== timedChannel.handleFetchEventEndTime) {
       details.handledByServiceWorker = {
         start: timedChannel.handleFetchEventStartTime,
         end:   timedChannel.handleFetchEventEndTime
