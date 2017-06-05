@@ -338,6 +338,44 @@ function test() {
       is(typeof requestItem.eventTimings.totalTime, "number",
         "The eventTimings data has an incorrect |totalTime| property.");
 
+      let details = requestItem.eventTimings.details;
+      ok("undefined" === typeof details.serviceWorkerPreparation ||
+         "number" === typeof details.serviceWorkerPreparation.start &&
+         "number" === typeof details.serviceWorkerPreparation.end,
+         "The eventTimings details data has an incorrect |serviceWorkerPreparation| property.");
+      ok("undefined" === typeof details.requestToServiceWorker ||
+         "number" === typeof details.requestToServiceWorker.start &&
+         "number" === typeof details.requestToServiceWorker.end,
+         "The eventTimings details data has an incorrect |requestToServiceWorker| property.");
+      ok("undefined" === typeof details.handledByServiceWorker ||
+         "number" === typeof details.handledByServiceWorker.start &&
+         "number" === typeof details.handledByServiceWorker.end,
+         "The eventTimings details data has an incorrect |handledByServiceWorker| property.");
+      ok("undefined" === typeof details.blocked ||
+         "number" === typeof details.blocked.start &&
+         "number" === typeof details.blocked.end,
+         "The eventTimings details data has an incorrect |blocked| property.");
+      ok("undefined" === typeof details.dns ||
+         "number" === typeof details.dns.start &&
+         "number" === typeof details.dns.end,
+         "The eventTimings details data has an incorrect |dns| property.");
+      ok("undefined" === typeof details.connect ||
+         "number" === typeof details.connect.start &&
+         "number" === typeof details.connect.end,
+         "The eventTimings details data has an incorrect |connect| property.");
+      ok("undefined" === typeof details.send ||
+         "number" === typeof details.send.start &&
+         "number" === typeof details.send.end,
+         "The eventTimings details data has an incorrect |send| property.");
+      ok("undefined" === typeof details.wait ||
+         "number" === typeof details.wait.start &&
+         "number" === typeof details.wait.end,
+         "The eventTimings details data has an incorrect |wait| property.");
+      ok("undefined" === typeof details.receive ||
+         "number" === typeof details.receive.start &&
+         "number" === typeof details.receive.end,
+         "The eventTimings details data has an incorrect |receive| property.");
+
       verifyRequestItemTarget(
         document,
         getDisplayedRequests(store.getState()),

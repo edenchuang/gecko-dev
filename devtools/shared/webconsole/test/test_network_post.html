@@ -249,6 +249,31 @@ function onEventTimings(aState, aResponse)
 {
   info("checking event timings");
 
+  // This is a workaround for aResponse.details, since it doesn't carry invalid
+  // timing markers. For instance, the timing marker "dns" is undefined when dns
+  // is cached.
+  ["serviceWorkerPreparation",
+   "requestToServiceWorker",
+   "handledByServiceWorker",
+   "blocked",
+   "dns",
+   "connect",
+   "send",
+   "wait",
+   "receive"].forEach(type => {
+     if (typeof aResponse.details[type] === "undefined") {
+       aResponse.details[type] = {
+         start: 0,
+         end: 0
+       };
+     }
+   });
+
+  let detail = {
+    start: /^\d+$/,
+    end: /^\d+$/
+  };
+
   checkObject(aResponse, {
     timings: {
       blocked: /^-1|\d+$/,
@@ -257,6 +282,17 @@ function onEventTimings(aState, aResponse)
       send: /^-1|\d+$/,
       wait: /^-1|\d+$/,
       receive: /^-1|\d+$/,
+    },
+    details: {
+      serviceWorkerPreparation: detail,
+      requestToServiceWorker: detail,
+      handledByServiceWorker: detail,
+      blocked: detail,
+      dns: detail,
+      connect: detail,
+      send: detail,
+      wait: detail,
+      receive: detail,
     },
     totalTime: /^\d+$/,
   });
