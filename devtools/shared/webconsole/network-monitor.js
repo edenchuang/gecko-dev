@@ -1392,36 +1392,47 @@ NetworkMonitor.prototype = {
    */
   _setupHarTimings: function (httpActivity, channel, fromCache) {
     let harTimings = {};
+    let details = {};
+    let totalTime = 0;
 
     let timedChannel = channel.QueryInterface(Ci.nsITimedChannel);
-    let details = {
-      serviceWorkerPreparation: {start: timedChannel.launchServiceWorkerStartTime,
-                                 end:   timedChannel.launchServiceWorkerEndTime},
-      requestToServiceWorker: {start: timedChannel.dispatchFetchEventStartTime,
-                               end:   timedChannel.dispatchFetchEventEndTime},
-      handledByServiceWorker: {start: timedChannel.handleFetchEventStartTime,
-                               end:   timedChannel.handleFetchEventEndTime}
-    };
 
-    ['serviceWorkerPreparation',
-     'requestToServiceWorker',
-     'handledByServiceWorker'].forEach(t => {
-      if (0 === details[t].start &&
-          0 === details[t].end) {
-        // Skip invalid entries.
-        delete details[t];
-      }
-    });
+    // details.launchServiceWorker
+    if (timedChannel.launchServiceWorkerStartTime &&
+        timedChannel.launchServiceWorkerEndTime) {
+      details.serviceWorkerPreparation = {
+        start: timedChannel.launchServiceWorkerStartTime,
+        end:   timedChannel.launchServiceWorkerEndTime
+      };
+    }
+
+    // details.requestToServiceWorker
+    if (timedChannel.dispatchFetchEventStartTime &&
+        timedChannel.dispatchFetchEventEndTime) {
+      details.requestToServiceWorker = {
+        start: timedChannel.dispatchFetchEventStartTime,
+        end:   timedChannel.dispatchFetchEventEndTime
+      };
+    }
+
+    // details.handledByServiceWorker
+    if (timedChannel.handleFetchEventStartTime &&
+        timedChannel.handleFetchEventEndTime) {
+      details.handledByServiceWorker = {
+        start: timedChannel.handleFetchEventStartTime,
+        end:   timedChannel.handleFetchEventEndTime
+      };
+    }
 
     if (fromCache) {
       // If it came from the browser cache, we have no timing
       // information and these should all be 0
-      ['blocked', 'dns', 'connect', 'send', 'wait', 'receive'].forEach(t => {
-        harTimings[t] = 0;
+      ['blocked', 'dns', 'connect', 'send', 'wait', 'receive'].forEach(type => {
+        harTimings[type] = 0;
       });
 
       return {
-        total: 0,
+        total: totalTime,
         timings: harTimings,
         details: details
       };
@@ -1431,71 +1442,69 @@ NetworkMonitor.prototype = {
 
     // details.blocked
     if (timings.STATUS_RESOLVING && timings.STATUS_CONNECTING_TO) {
-      details.blocked = {start: timings.REQUEST_HEADER.first,
-                         end: timings.STATUS_RESOLVING.first};
+      details.blocked = {
+        start: timings.REQUEST_HEADER.first,
+        end: timings.STATUS_RESOLVING.first
+      };
     } else if (timings.STATUS_SENDING_TO) {
-      details.blocked = {start: timings.REQUEST_HEADER.first,
-                         end: timings.STATUS_SENDING_TO.first};
-    } else {
-      details.blocked = {start: 0, end: 0};
+      details.blocked = {
+        start: timings.REQUEST_HEADER.first,
+        end: timings.STATUS_SENDING_TO.first
+      };
     }
 
     // details.dns
     // DNS timing information is available only in when the DNS record is not
     // cached.
     if (timings.STATUS_RESOLVING && timings.STATUS_RESOLVED) {
-      details.dns = {start: timings.STATUS_RESOLVING.first,
-                     end: timings.STATUS_RESOLVED.last}
-    } else {
-      details.dns = {start: 0, end: 0};
+      details.dns = {
+        start: timings.STATUS_RESOLVING.first,
+        end: timings.STATUS_RESOLVED.last
+      };
     }
 
     // details.connect
     if (timings.STATUS_CONNECTING_TO && timings.STATUS_CONNECTED_TO) {
-      details.connect = {start: timings.STATUS_CONNECTING_TO.first,
-                         end: timings.STATUS_CONNECTED_TO.last};
-    } else {
-      details.connect = {start: 0, end: 0};
+      details.connect = {
+        start: timings.STATUS_CONNECTING_TO.first,
+        end: timings.STATUS_CONNECTED_TO.last
+      };
     }
 
     // details.send
     if (timings.STATUS_SENDING_TO) {
-      details.send = {start: timings.STATUS_SENDING_TO.first,
-                      end: timings.STATUS_SENDING_TO.last};
+      details.send = {
+        start: timings.STATUS_SENDING_TO.first,
+        end: timings.STATUS_SENDING_TO.last
+      };
     } else if (timings.REQUEST_HEADER && timings.REQUEST_BODY_SENT) {
-      details.send = {start: timings.REQUEST_HEADER.first,
-                      end: timings.REQUEST_BODY_SENT.last};
-    } else {
-      details.send = {start: 0, end: 0};
+      details.send = {
+        start: timings.REQUEST_HEADER.first,
+        end: timings.REQUEST_BODY_SENT.last
+      };
     }
 
     // details.wait
     if (timings.RESPONSE_START) {
-      details.wait = {start: (timings.REQUEST_BODY_SENT ||
-                              timings.STATUS_SENDING_TO).last,
-                      end: timings.RESPONSE_START.first};
-    } else {
-      details.wait = {start: 0, end: 0};
+      details.wait = {
+        start: (timings.REQUEST_BODY_SENT || timings.STATUS_SENDING_TO).last,
+        end: timings.RESPONSE_START.first
+      };
     }
 
     // details.receive
     if (timings.RESPONSE_START && timings.RESPONSE_COMPLETE) {
-      details.receive = {start: timings.RESPONSE_START.first,
-                         end: timings.RESPONSE_COMPLETE.last};
-    } else {
-      details.receive = {start: 0, end: 0};
+      details.receive = {
+        start: timings.RESPONSE_START.first,
+        end: timings.RESPONSE_COMPLETE.last
+      };
     }
 
     // Compute harTimings.
     let totalTime = 0;
     ["blocked", "dns", "connect", "send", "wait", "receive"].forEach(type => {
-      if (0 === details[type].start &&
-          0 === details[type].end) {
+      if (!details[type]) {
         harTimings[type] = -1;
-
-        // Remove invalid entries.
-        delete details[type];
-
         return;
       }
 
