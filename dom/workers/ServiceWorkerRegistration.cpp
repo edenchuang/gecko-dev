@@ -139,6 +139,30 @@ public:
     aScope = mScope;
   }
 
+  ServiceWorkerUpdateViaCache
+  UpdateViaCache() const override
+  {
+    RefPtr<ServiceWorkerManager> swm = ServiceWorkerManager::GetInstance();
+    MOZ_ASSERT(swm);
+
+    nsCOMPtr<nsPIDOMWindowInner> window = GetOwner();
+    MOZ_ASSERT(window);
+
+    nsCOMPtr<nsIDocument> doc = window->GetExtantDoc();
+    MOZ_ASSERT(doc);
+
+    nsCOMPtr<nsIServiceWorkerRegistrationInfo> registration;
+    nsresult rv = swm->GetRegistrationByPrincipal(doc->NodePrincipal(), mScope,
+                                                  getter_AddRefs(registration));
+    MOZ_ASSERT(NS_SUCCEEDED(rv) && registration);
+
+    uint16_t updateViaCache;
+    rv = registration->GetUpdateViaCache(&updateViaCache);
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
+
+    return static_cast<ServiceWorkerUpdateViaCache>(updateViaCache);
+  }
+
 private:
   ~ServiceWorkerRegistrationMainThread();
 
@@ -914,6 +938,13 @@ public:
   GetScope(nsAString& aScope) const override
   {
     aScope = mScope;
+  }
+
+  ServiceWorkerUpdateViaCache
+  UpdateViaCache() const override
+  {
+    // FIXME(hopang): Will be implemented after Bug 1113522.
+    return ServiceWorkerUpdateViaCache::Imports;
   }
 
   bool
