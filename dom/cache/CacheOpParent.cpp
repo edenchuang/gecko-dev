@@ -82,16 +82,20 @@ CacheOpParent::Execute(cache::Manager* aManager)
 
     AutoTArray<nsCOMPtr<nsIInputStream>, 256> requestStreamList;
     AutoTArray<nsCOMPtr<nsIInputStream>, 256> responseStreamList;
+    AutoTArray<nsCOMPtr<nsIInputStream>, 256> responseAlternativeStreamList;
 
     for (uint32_t i = 0; i < list.Length(); ++i) {
       requestStreamList.AppendElement(
         DeserializeCacheStream(list[i].request().body()));
       responseStreamList.AppendElement(
         DeserializeCacheStream(list[i].response().body()));
+      responseAlternativeStreamList.AppendElement(
+        nullptr /* DeserializeCacheStream(list[i].response().alternativeBody) */);
     }
 
     mManager->ExecutePutAll(this, mCacheId, args.requestResponseList(),
-                            requestStreamList, responseStreamList);
+                            requestStreamList, responseStreamList,
+                            responseAlternativeStreamList);
     return;
   }
 

@@ -664,7 +664,8 @@ public:
                     CacheId aCacheId,
                     const nsTArray<CacheRequestResponse>& aPutList,
                     const nsTArray<nsCOMPtr<nsIInputStream>>& aRequestStreamList,
-                    const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseStreamList)
+                    const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseStreamList,
+                    const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseAlternativeStreamList)
     : DBAction(DBAction::Existing)
     , mManager(aManager)
     , mListenerId(aListenerId)
@@ -686,6 +687,7 @@ public:
       entry->mRequestStream = aRequestStreamList[i];
       entry->mResponse = aPutList[i].response();
       entry->mResponseStream = aResponseStreamList[i];
+      entry->mResponseAlternativeStream = aResponseAlternativeStreamList[i];
     }
   }
 
@@ -729,6 +731,12 @@ private:
       }
 
       rv = StartStreamCopy(aQuotaInfo, mList[i], ResponseStream,
+                           &mExpectedAsyncCopyCompletions);
+      if (NS_WARN_IF(NS_FAILED(rv))) {
+        break;
+      }
+
+      rv = StartStreamCopy(aQuotaInfo, mList[i], ResponseAlternativeStream,
                            &mExpectedAsyncCopyCompletions);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         break;
@@ -838,6 +846,13 @@ private:
           return;
         }
       }
+      if (e.mResponseAlternativeStream) {
+        rv = BodyFinalizeWrite(mDBDir, e.mResponseAlternativeBodyId);
+        if (NS_WARN_IF(NS_FAILED(rv))) {
+          DoResolve(rv);
+          return;
+        }
+      }
 
       int64_t deletedPaddingSize = 0;
       rv = db::CachePut(mConn, mCacheId, e.mRequest,
@@ -917,12 +932,16 @@ private:
     CacheResponse mResponse;
     nsCOMPtr<nsIInputStream> mResponseStream;
     nsID mResponseBodyId;
+
+    nsCOMPtr<nsIInputStream> mResponseAlternativeStream;
+    nsID mResponseAlternativeBodyId;
   };
 
   enum StreamId
   {
     RequestStream,
-    ResponseStream
+    ResponseStream,
+    ResponseAlternativeStream
   };
 
   nsresult
@@ -939,13 +958,21 @@ private:
     nsCOMPtr<nsIInputStream> source;
     nsID* bodyId;
 
-    if (aStreamId == RequestStream) {
-      source = aEntry.mRequestStream;
-      bodyId = &aEntry.mRequestBodyId;
-    } else {
-      MOZ_DIAGNOSTIC_ASSERT(aStreamId == ResponseStream);
-      source = aEntry.mResponseStream;
-      bodyId = &aEntry.mResponseBodyId;
+    switch (aStreamId) {
+      case RequestStream:
+        source = aEntry.mRequestStream;
+        bodyId = &aEntry.mRequestBodyId;
+        break;
+      case ResponseStream:
+        source = aEntry.mResponseStream;
+        bodyId = &aEntry.mResponseBodyId;
+        break;
+      case ResponseAlternativeStream:
+        source = aEntry.mResponseAlternativeStream;
+        bodyId = &aEntry.mResponseAlternativeBodyId;
+        break;
+      default:
+        MOZ_DIAGNOSTIC_ASSERT(false);
     }
 
     if (!source) {
@@ -1916,7 +1943,8 @@ void
 Manager::ExecutePutAll(Listener* aListener, CacheId aCacheId,
                        const nsTArray<CacheRequestResponse>& aPutList,
                        const nsTArray<nsCOMPtr<nsIInputStream>>& aRequestStreamList,
-                       const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseStreamList)
+                       const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseStreamList,
+                       const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseAlternativeStreamList)
 {
   NS_ASSERT_OWNINGTHREAD(Manager);
   MOZ_DIAGNOSTIC_ASSERT(aListener);
@@ -1932,8 +1960,9 @@ Manager::ExecutePutAll(Listener* aListener, CacheId aCacheId,
   ListenerId listenerId = SaveListener(aListener);
 
   RefPtr<Action> action = new CachePutAllAction(this, listenerId, aCacheId,
-                                                  aPutList, aRequestStreamList,
-                                                  aResponseStreamList);
+                                                aPutList, aRequestStreamList,
+                                                aResponseStreamList,
+                                                aResponseAlternativeStreamList);
 
   context->Dispatch(action);
 }

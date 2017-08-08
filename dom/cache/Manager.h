@@ -172,7 +172,8 @@ public:
   void ExecutePutAll(Listener* aListener, CacheId aCacheId,
                      const nsTArray<CacheRequestResponse>& aPutList,
                      const nsTArray<nsCOMPtr<nsIInputStream>>& aRequestStreamList,
-                     const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseStreamList);
+                     const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseStreamList,
+                     const nsTArray<nsCOMPtr<nsIInputStream>>& aResponseAlternativeStreamList);
 
   void ExecuteStorageOp(Listener* aListener, Namespace aNamespace,
                         const CacheOpArgs& aOpArgs);
