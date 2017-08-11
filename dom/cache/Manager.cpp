@@ -913,12 +913,10 @@ private:
     CacheRequest mRequest;
     nsCOMPtr<nsIInputStream> mRequestStream;
     nsID mRequestBodyId;
-    nsCOMPtr<nsISupports> mRequestCopyContext;
 
     CacheResponse mResponse;
     nsCOMPtr<nsIInputStream> mResponseStream;
     nsID mResponseBodyId;
-    nsCOMPtr<nsISupports> mResponseCopyContext;
   };
 
   enum StreamId
