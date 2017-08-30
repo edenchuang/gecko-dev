@@ -8,6 +8,7 @@
 #define mozilla_dom_InternalResponse_h
 
 #include "nsIInputStream.h"
+#include "nsICacheInfoChannel.h"
 #include "nsISupportsImpl.h"
 
 #include "mozilla/dom/InternalHeaders.h"
@@ -246,6 +247,50 @@ public:
   SetPaddingSize(int64_t aPaddingSize);
 
   void
+  SetAlternativeBody(nsIInputStream* aAlternativeBody)
+  {
+    if (mWrappedResponse) {
+      return mWrappedResponse->SetAlternativeBody(aAlternativeBody);
+    }
+    // A request's body may not be reset once set.
+    MOZ_ASSERT(!mAlternativeBody);
+
+    mAlternativeBody = aAlternativeBody;
+  }
+
+  already_AddRefed<nsIInputStream>
+  GetAlternativeBody()
+  {
+    if (mWrappedResponse) {
+      return mWrappedResponse->GetAlternativeBody();
+    }
+
+    nsCOMPtr<nsIInputStream> ret = mAlternativeBody;
+    return ret.forget();
+  }
+
+  void
+  SetCacheInfoChannel(nsICacheInfoChannel* aCacheInfoChannel)
+  {
+    if (mWrappedResponse) {
+      return mWrappedResponse->SetCacheInfoChannel(aCacheInfoChannel);
+    }
+
+    mCacheInfoChannel = aCacheInfoChannel;
+  }
+
+  already_AddRefed<nsICacheInfoChannel>
+  GetCacheInfoChannel()
+  {
+    if (mWrappedResponse) {
+      return mWrappedResponse->GetCacheInfoChannel();
+    }
+
+    nsCOMPtr<nsICacheInfoChannel> ret = mCacheInfoChannel;
+    return ret.forget();
+  }
+
+  void
   InitChannelInfo(nsIChannel* aChannel)
   {
     mChannelInfo.InitFromChannel(aChannel);
@@ -317,6 +362,11 @@ private:
   // generate the padding size for resposne, we don't need it anymore.
   Maybe<uint32_t> mPaddingInfo;
   int64_t mPaddingSize;
+
+  // For alternative data such as JS Bytecode cached in the HTTP cache.
+  nsCOMPtr<nsIInputStream> mAlternativeBody;
+  nsCOMPtr<nsICacheInfoChannel> mCacheInfoChannel;
+
 public:
   static const int64_t UNKNOWN_BODY_SIZE = -1;
   static const int64_t UNKNOWN_PADDING_SIZE = -1;
