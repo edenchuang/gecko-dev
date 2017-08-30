@@ -70,6 +70,8 @@ FetchDriver::FetchDriver(InternalRequest* aRequest, nsIPrincipal* aPrincipal,
   , mRequest(aRequest)
   , mMainThreadEventTarget(aMainThreadEventTarget)
   , mIsTrackingFetch(aIsTrackingFetch)
+  , mCurrentFetchingDataType(EmptyCString())
+  , mAlternativeDataCacheEntryId(0)
 #ifdef DEBUG
   , mResponseAvailableCalled(false)
   , mFetchCalled(false)
@@ -126,7 +128,7 @@ FetchDriver::Fetch(AbortSignal* aSignal, FetchDriverObserver* aObserver)
     Follow(aSignal);
   }
 
-  if (NS_FAILED(HttpFetch())) {
+  if (NS_FAILED(HttpFetch(mRequest->GetPreferredAlternativeDataType()))) {
     FailWithNetworkError();
   }
 
@@ -138,7 +140,7 @@ FetchDriver::Fetch(AbortSignal* aSignal, FetchDriverObserver* aObserver)
 // Functionality is often split between here, the CORS listener proxy and the
 // Necko HTTP implementation.
 nsresult
-FetchDriver::HttpFetch()
+FetchDriver::HttpFetch(const nsCString& aPreferredAlternativeDataType)
 {
   MOZ_ASSERT(NS_IsMainThread());
 
@@ -263,7 +265,12 @@ FetchDriver::HttpFetch()
   }
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mLoadGroup = nullptr;
+  // Do not release mLoadGroup when a non-empty aPreferredAlternativeDataType is
+  // passed, since this function might be invoked again for retrieving the main
+  // data body with an empty aPreferredAlternativeDataType.
+  if (aPreferredAlternativeDataType.Equals(EmptyCString())) {
+    mLoadGroup = nullptr;
+  }
 
   // Insert ourselves into the notification callbacks chain so we can set
   // headers on redirects.
@@ -408,6 +415,15 @@ FetchDriver::HttpFetch()
     }
   }
 
+  mCurrentFetchingDataType = EmptyCString();
+  if (!aPreferredAlternativeDataType.IsEmpty()) {
+    nsCOMPtr<nsICacheInfoChannel> cic = do_QueryInterface(chan);
+    if (cic) {
+      mCurrentFetchingDataType = aPreferredAlternativeDataType;
+      cic->PreferAlternativeDataType(aPreferredAlternativeDataType);
+    }
+  }
+
   rv = chan->AsyncOpen2(this);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -485,6 +501,42 @@ FetchDriver::OnStartRequest(nsIRequest* aRequest,
   // Note, this can be called multiple times if we are doing an opaqueredirect.
   // In that case we will get a simulated OnStartRequest() and then the real
   // channel will call in with an errored OnStartRequest().
+
+  if (!mCurrentFetchingDataType.IsEmpty()) {
+    nsAutoCString alternativeDataType;
+    nsCOMPtr<nsICacheInfoChannel> cic = do_QueryInterface(aRequest);
+    if (cic &&
+        NS_SUCCEEDED(cic->GetAlternativeDataType(alternativeDataType)) &&
+        mCurrentFetchingDataType.Equals(alternativeDataType)) {
+
+      nsresult rv = cic->GetCacheEntryId(&mAlternativeDataCacheEntryId);
+      MOZ_DIAGNOSTIC_ASSERT(NS_SUCCEEDED(rv));
+
+      MOZ_DIAGNOSTIC_ASSERT(!mPipeAlternativeInputStream);
+      MOZ_DIAGNOSTIC_ASSERT(!mPipeAlternativeOutputStream);
+      rv = NS_NewPipe(
+          getter_AddRefs(mPipeAlternativeInputStream),
+          getter_AddRefs(mPipeAlternativeOutputStream),
+          0 /* default segment size */,
+          UINT32_MAX /* infinite pipe */,
+          true /* non-blocking input, otherwise you deadlock */,
+          false /* blocking output, since the pipe is 'in'finite */);
+
+      if (NS_FAILED(rv)) {
+        FailWithNetworkError();
+        return rv; // Cancel the request.
+      }
+
+      MOZ_DIAGNOSTIC_ASSERT(!mCacheInfoChannel);
+      mCacheInfoChannel = cic;
+
+      return NS_OK;
+    }
+
+    // Fallback to the main data, since the alternative data doesn't exist.
+    MOZ_DIAGNOSTIC_ASSERT(alternativeDataType.IsEmpty());
+    mCurrentFetchingDataType = EmptyCString();
+  }
 
   nsresult rv;
   aRequest->GetStatus(&rv);
@@ -570,6 +622,17 @@ FetchDriver::OnStartRequest(nsIRequest* aRequest,
                                   result);
       MOZ_ASSERT(!result.Failed());
     }
+  }
+
+  // TODO: Place some comments here.
+  uint64_t cacheEntryId = 0;
+  nsCOMPtr<nsICacheInfoChannel> cic = do_QueryInterface(aRequest);
+  response->SetCacheInfoChannel(cic);
+
+  if (cic && NS_SUCCEEDED(cic->GetCacheEntryId(&cacheEntryId)) &&
+      cacheEntryId == mAlternativeDataCacheEntryId) {
+    response->SetAlternativeBody(mPipeAlternativeInputStream);
+    response->SetCacheInfoChannel(mCacheInfoChannel);
   }
 
   // We open a pipe so that we can immediately set the pipe's read end as the
@@ -747,6 +810,13 @@ FetchDriver::OnDataAvailable(nsIRequest* aRequest,
   // called between OnStartRequest and OnStopRequest, so we don't need to worry
   // about races.
 
+  if (!mCurrentFetchingDataType.IsEmpty()) {
+    uint32_t read;
+    return aInputStream->ReadSegments(NS_CopySegmentToStream,
+                                      mPipeAlternativeOutputStream,
+                                      aCount, &read);
+  }
+
   if (mObserver) {
     if (NS_IsMainThread()) {
       mObserver->OnDataAvailable();
@@ -788,6 +858,25 @@ FetchDriver::OnStopRequest(nsIRequest* aRequest,
                            nsresult aStatusCode)
 {
   workers::AssertIsOnMainThread();
+
+  if (!mCurrentFetchingDataType.IsEmpty()) {
+    mPipeAlternativeOutputStream->Close();
+
+    // Cleanup the states for alternative data if needed.
+    if (NS_FAILED(aStatusCode)) {
+      mAlternativeDataCacheEntryId = 0;
+      mCacheInfoChannel = nullptr;
+      mPipeAlternativeOutputStream = nullptr;
+      mPipeAlternativeInputStream = nullptr;
+    }
+
+    // Fetch the main data.
+    if (NS_FAILED(HttpFetch(EmptyCString()))) {
+      FailWithNetworkError();
+    }
+
+    return NS_OK;
+  }
 
   // We need to check mObserver, which is nulled by FailWithNetworkError(),
   // because in the case of "error" redirect mode, aStatusCode may be NS_OK but

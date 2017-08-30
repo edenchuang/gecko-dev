@@ -8,6 +8,7 @@
 #define mozilla_dom_FetchDriver_h
 
 #include "nsIChannelEventSink.h"
+#include "nsICacheInfoChannel.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIStreamListener.h"
 #include "nsIThreadRetargetableStreamListener.h"
@@ -133,6 +134,12 @@ private:
   nsCString mWorkerScript;
   bool mIsTrackingFetch;
 
+  nsCString mCurrentFetchingDataType;
+  nsCOMPtr<nsIInputStream> mPipeAlternativeInputStream;
+  nsCOMPtr<nsIOutputStream> mPipeAlternativeOutputStream;
+  uint64_t mAlternativeDataCacheEntryId;
+  nsCOMPtr<nsICacheInfoChannel> mCacheInfoChannel;
+
 #ifdef DEBUG
   bool mResponseAvailableCalled;
   bool mFetchCalled;
@@ -143,7 +150,7 @@ private:
   FetchDriver& operator=(const FetchDriver&) = delete;
   ~FetchDriver();
 
-  nsresult HttpFetch();
+  nsresult HttpFetch(const nsCString& aPreferredAlternativeDataType);
   // Returns the filtered response sent to the observer.
   already_AddRefed<InternalResponse>
   BeginAndGetFilteredResponse(InternalResponse* aResponse,
