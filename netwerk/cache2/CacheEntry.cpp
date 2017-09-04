@@ -191,6 +191,13 @@ NS_IMPL_ISUPPORTS(CacheEntry,
                   nsIRunnable,
                   CacheFileListener)
 
+static uint64_t gCacheEntryCurrentId = 0;
+
+uint64_t CacheEntry::GetNextId() {
+  mozilla::MutexAutoLock lock(mLock);
+  return ++gCacheEntryCurrentId;
+}
+
 CacheEntry::CacheEntry(const nsACString& aStorageID,
                        const nsACString& aURI,
                        const nsACString& aEnhanceID,
@@ -217,8 +224,11 @@ CacheEntry::CacheEntry(const nsACString& aStorageID,
 , mWriter(nullptr)
 , mPredictedDataSize(0)
 , mUseCount(0)
+, mCacheEntryId(GetNextId())
 {
   LOG(("CacheEntry::CacheEntry [this=%p]", this));
+
+  MOZ_ASSERT(mCacheEntryId != 0, "ID of a valid CacheEntry shouldn't be 0.");
 
   mService = CacheStorageService::Self();
 
@@ -1045,6 +1055,12 @@ NS_IMETHODIMP CacheEntry::GetPersistent(bool *aPersistToDisk)
 NS_IMETHODIMP CacheEntry::GetKey(nsACString & aKey)
 {
   aKey.Assign(mURI);
+  return NS_OK;
+}
+
+NS_IMETHODIMP CacheEntry::GetCacheEntryId(uint64_t *aCacheEntryId)
+{
+  *aCacheEntryId = mCacheEntryId;
   return NS_OK;
 }
 

@@ -115,6 +115,11 @@ public:
   {
     return mOldInfo->GetKey(aKey);
   }
+  NS_IMETHOD GetCacheEntryId(uint64_t *aCacheEntryId) override
+  {
+    *aCacheEntryId = 0; // Treat OldWrappers as invalid caches.
+    return NS_OK;
+  }
   NS_IMETHOD GetFetchCount(int32_t *aFetchCount) override
   {
     return mOldInfo->GetFetchCount(aFetchCount);

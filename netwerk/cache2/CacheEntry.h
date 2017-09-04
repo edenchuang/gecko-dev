@@ -125,6 +125,8 @@ public:
 private:
   virtual ~CacheEntry();
 
+  uint64_t GetNextId();
+
   // CacheFileListener
   NS_IMETHOD OnFileReady(nsresult aResult, bool aIsNew) override;
   NS_IMETHOD OnFileDoomed(nsresult aResult) override;
@@ -383,6 +385,8 @@ private:
   int64_t mPredictedDataSize;
   mozilla::TimeStamp mLoadStart;
   uint32_t mUseCount;
+
+  const uint64_t mCacheEntryId;
 };
 
 
