@@ -303,6 +303,7 @@ AutoRedirectVetoNotifier::ReportRedirectResult(bool succeeded)
 nsHttpChannel::nsHttpChannel()
     : HttpAsyncAborter<nsHttpChannel>(this)
     , mLogicalOffset(0)
+    , mCacheEntryId(0)
     , mPostID(0)
     , mRequestTime(0)
     , mOfflineCacheLastModifiedTime(0)
@@ -1579,6 +1580,12 @@ nsHttpChannel::CallOnStartRequest()
                        mIsCorsPreflightDone,
                        "CORS preflight must have been finished by the time we "
                        "call OnStartRequest");
+
+    bool isFromCache = false;
+    if (!NS_FAILED(IsFromCache(&isFromCache)) && isFromCache && mCacheEntry) {
+      nsresult rv = mCacheEntry->GetCacheEntryId(&mCacheEntryId);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
 
     if (mOnStartRequestCalled) {
         // This can only happen when a range request loading rest of the data
@@ -7942,6 +7949,13 @@ nsHttpChannel::IsFromCache(bool *value)
     *value = mFirstResponseSource == RESPONSE_FROM_CACHE;
 
     return NS_OK;
+}
+
+NS_IMETHODIMP
+nsHttpChannel::GetCacheEntryId(uint64_t *aCacheEntryId)
+{
+  *aCacheEntryId = mCacheEntryId;
+  return NS_OK;
 }
 
 NS_IMETHODIMP

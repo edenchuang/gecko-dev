@@ -132,6 +132,7 @@ protected:
                                              const nsHttpHeaderArray& requestHeaders,
                                              const bool& isFromCache,
                                              const bool& cacheEntryAvailable,
+                                             const uint64_t& cacheEntryId,
                                              const int32_t& cacheFetchCount,
                                              const uint32_t& cacheExpirationTime,
                                              const nsCString& cachedCharset,
@@ -283,6 +284,7 @@ private:
   int64_t mSynthesizedStreamLength;
 
   bool mIsFromCache;
+  uint64_t mCacheEntryId;
   bool mCacheEntryAvailable;
   bool mAltDataCacheEntryAvailable;
   int32_t      mCacheFetchCount;
@@ -380,6 +382,7 @@ private:
                       const nsHttpHeaderArray& requestHeaders,
                       const bool& isFromCache,
                       const bool& cacheEntryAvailable,
+                      const uint64_t& cacheEntryId,
                       const int32_t& cacheFetchCount,
                       const uint32_t& cacheExpirationTime,
                       const nsCString& cachedCharset,

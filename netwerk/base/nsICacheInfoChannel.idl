@@ -39,6 +39,17 @@ interface nsICacheInfoChannel : nsISupports
   boolean isFromCache();
 
   /**
+   * The unique ID of the corresponding CacheEntry from which the response is
+   * retrieved. By comparing this attribute, we can check whether two pieces of
+   * information are from the same CacheEntry. This senario could be useful when
+   * making sure that the alternative data from one channel matches the original
+   * data for another channel.
+   *
+   * Note: 0 is reserved for no valid correspnsICacheEntry instances.
+   */
+  readonly attribute uint64_t cacheEntryId;
+
+  /**
    * Set/get the cache key... uniquely identifies the data in the cache
    * for this channel.  Holding a reference to this key does NOT prevent
    * the cached data from being removed.

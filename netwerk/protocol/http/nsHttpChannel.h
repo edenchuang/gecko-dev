@@ -550,6 +550,9 @@ private:
 
     // cache specific data
     nsCOMPtr<nsICacheEntry>           mCacheEntry;
+    // The ID of mCacheEntry is explicitly saved here if needed, since checks
+    // might occur when mCacheEntry is detached from this channel.
+    uint64_t                          mCacheEntryId;
     // This will be set during OnStopRequest() before calling CloseCacheEntry(),
     // but only if the listener wants to use alt-data (signaled by
     // HttpBaseChannel::mPreferredCachedAltDataType being not empty)
