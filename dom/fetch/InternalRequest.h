@@ -539,6 +539,18 @@ public:
     return mPrincipalInfo;
   }
 
+  const nsCString&
+  GetPreferredAlternativeDataType() const
+  {
+    return mPreferredAlternativeDataType;
+  }
+
+  void
+  SetPreferredAlternativeDataType(const nsCString& aDataType)
+  {
+    mPreferredAlternativeDataType = aDataType;
+  }
+
 private:
   // Does not copy mBodyStream.  Use fallible Clone() for complete copy.
   explicit InternalRequest(const InternalRequest& aOther);
@@ -560,6 +572,8 @@ private:
   RefPtr<InternalHeaders> mHeaders;
   nsCOMPtr<nsIInputStream> mBodyStream;
   int64_t mBodyLength;
+
+  nsCString mPreferredAlternativeDataType;
 
   nsContentPolicyType mContentPolicyType;
 

@@ -51,6 +51,8 @@ InternalRequest::GetRequestConstructorCopy(nsIGlobalObject* aGlobal, ErrorResult
   copy->mRedirectMode = mRedirectMode;
   copy->mCreatedByFetchEvent = mCreatedByFetchEvent;
   copy->mContentPolicyTypeOverridden = mContentPolicyTypeOverridden;
+
+  copy->mPreferredAlternativeDataType = mPreferredAlternativeDataType;
   return copy.forget();
 }
 
