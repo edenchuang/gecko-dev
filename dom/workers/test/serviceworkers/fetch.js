@@ -4,6 +4,8 @@ addEventListener('fetch', function(event) {
   } else if (event.request.url.indexOf("fake.html") !== -1) {
     event.respondWith(fetch("hello.html"));
   }
+
+  event.respondWith(fetch(event.request));
 });
 
 addEventListener("activate", function(event) {
