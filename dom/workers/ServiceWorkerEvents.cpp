@@ -171,19 +171,22 @@ class FinishResponse final : public Runnable
   ChannelInfo mWorkerChannelInfo;
   const nsCString mScriptSpec;
   const nsCString mResponseURLSpec;
+  nsCOMPtr<nsICacheInfoChannel> mCacheInfoChannel;
 
 public:
   FinishResponse(nsMainThreadPtrHandle<nsIInterceptedChannel>& aChannel,
                  InternalResponse* aInternalResponse,
                  const ChannelInfo& aWorkerChannelInfo,
                  const nsACString& aScriptSpec,
-                 const nsACString& aResponseURLSpec)
+                 const nsACString& aResponseURLSpec,
+                 nsICacheInfoChannel* aCacheInfoChannel)
     : Runnable("dom::workers::FinishResponse")
     , mChannel(aChannel)
     , mInternalResponse(aInternalResponse)
     , mWorkerChannelInfo(aWorkerChannelInfo)
     , mScriptSpec(aScriptSpec)
     , mResponseURLSpec(aResponseURLSpec)
+    , mCacheInfoChannel(aCacheInfoChannel)
   {
   }
 
@@ -233,7 +236,8 @@ public:
     auto castLoadInfo = static_cast<LoadInfo*>(loadInfo.get());
     castLoadInfo->SynthesizeServiceWorkerTainting(mInternalResponse->GetTainting());
 
-    rv = mChannel->FinishSynthesizedResponse(mResponseURLSpec);
+    rv = mChannel->FinishSynthesizedResponse(mResponseURLSpec,
+                                             mCacheInfoChannel);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       mChannel->CancelInterception(NS_ERROR_INTERCEPTION_FAILED);
       return NS_OK;
@@ -360,6 +364,7 @@ struct RespondWithClosure
   const nsCString mRespondWithScriptSpec;
   const uint32_t mRespondWithLineNumber;
   const uint32_t mRespondWithColumnNumber;
+  nsCOMPtr<nsICacheInfoChannel> mCacheInfoChannel;
 
   RespondWithClosure(nsMainThreadPtrHandle<nsIInterceptedChannel>& aChannel,
                      nsMainThreadPtrHandle<ServiceWorkerRegistrationInfo>& aRegistration,
@@ -370,7 +375,8 @@ struct RespondWithClosure
                      const nsAString& aRequestURL,
                      const nsACString& aRespondWithScriptSpec,
                      uint32_t aRespondWithLineNumber,
-                     uint32_t aRespondWithColumnNumber)
+                     uint32_t aRespondWithColumnNumber,
+                     nsICacheInfoChannel* aCacheInfoChannel)
     : mInterceptedChannel(aChannel)
     , mRegistration(aRegistration)
     , mInternalResponse(aInternalResponse)
@@ -381,6 +387,7 @@ struct RespondWithClosure
     , mRespondWithScriptSpec(aRespondWithScriptSpec)
     , mRespondWithLineNumber(aRespondWithLineNumber)
     , mRespondWithColumnNumber(aRespondWithColumnNumber)
+    , mCacheInfoChannel(aCacheInfoChannel)
   {
   }
 };
@@ -402,7 +409,8 @@ void RespondWithCopyComplete(void* aClosure, nsresult aStatus)
                                data->mInternalResponse,
                                data->mWorkerChannelInfo,
                                data->mScriptSpec,
-                               data->mResponseURLSpec);
+                               data->mResponseURLSpec,
+                               data->mCacheInfoChannel);
   }
   // In theory this can happen after the worker thread is terminated.
   WorkerPrivate* worker = GetCurrentThreadWorkerPrivate();
@@ -626,6 +634,8 @@ RespondWithHandler::ResolvedCallback(JSContext* aCx, JS::Handle<JS::Value> aValu
       return;
     }
   }
+
+  nsCOMPtr<nsICacheInfoChannel> cacheInfoChannel = ir->GetCacheInfoChannel();
   nsAutoPtr<RespondWithClosure> closure(new RespondWithClosure(mInterceptedChannel,
                                                                mRegistration, ir,
                                                                worker->GetChannelInfo(),
@@ -634,9 +644,14 @@ RespondWithHandler::ResolvedCallback(JSContext* aCx, JS::Handle<JS::Value> aValu
                                                                mRequestURL,
                                                                mRespondWithScriptSpec,
                                                                mRespondWithLineNumber,
-                                                               mRespondWithColumnNumber));
-  nsCOMPtr<nsIInputStream> body;
-  ir->GetUnfilteredBody(getter_AddRefs(body));
+                                                               mRespondWithColumnNumber,
+                                                               cacheInfoChannel));
+
+  nsCOMPtr<nsIInputStream> body = ir->GetAlternativeBody();
+  if (!body) {
+    ir->GetUnfilteredBody(getter_AddRefs(body));
+  }
+
   // Errors and redirects may not have a body.
   if (body) {
     IgnoredErrorResult error;

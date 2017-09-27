@@ -103,6 +103,8 @@ protected:
     bool                          mRetargeting;
     // Protects state/member var accesses across multiple threads.
     mozilla::RecursiveMutex       mMutex;
+    //
+    nsCString                     mAlternativeDataType;
 };
 
 #endif // !nsInputStreamChannel_h__

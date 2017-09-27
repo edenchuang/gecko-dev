@@ -638,7 +638,8 @@ InterceptedHttpChannel::SynthesizeHeader(const nsACString& aName,
 }
 
 NS_IMETHODIMP
-InterceptedHttpChannel::FinishSynthesizedResponse(const nsACString& aFinalURLSpec)
+InterceptedHttpChannel::FinishSynthesizedResponse(const nsACString& aFinalURLSpec,
+                                                  nsICacheInfoChannel* aCacheInfoChannel)
 {
   if (mCanceled) {
     return mStatus;

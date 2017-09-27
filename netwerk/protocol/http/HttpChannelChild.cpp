@@ -1432,7 +1432,8 @@ HttpChannelChild::OverrideRunnable::OverrideRunnable(
   HttpChannelChild* aNewChannel,
   InterceptStreamListener* aListener,
   nsIInputStream* aInput,
-  nsAutoPtr<nsHttpResponseHead>& aHead)
+  nsAutoPtr<nsHttpResponseHead>& aHead,
+  nsICacheInfoChannel* aCacheInfo)
   : Runnable("net::HttpChannelChild::OverrideRunnable")
 {
   mChannel = aChannel;
@@ -1440,13 +1441,15 @@ HttpChannelChild::OverrideRunnable::OverrideRunnable(
   mListener = aListener;
   mInput = aInput;
   mHead = aHead;
+  mCacheInfo = aCacheInfo;
 }
 
 void
 HttpChannelChild::OverrideRunnable::OverrideWithSynthesizedResponse()
 {
   if (mNewChannel) {
-    mNewChannel->OverrideWithSynthesizedResponse(mHead, mInput, mListener);
+    mNewChannel->OverrideWithSynthesizedResponse(mHead, mInput, mListener,
+                                                 mCacheInfo);
   }
 }
 
@@ -2139,7 +2142,7 @@ HttpChannelChild::OnRedirectVerifyCallback(nsresult result)
 
     Unused << neckoTarget->Dispatch(
       new OverrideRunnable(this, redirectedChannel, streamListener,
-                           mSynthesizedInput, mResponseHead),
+                           mSynthesizedInput, mResponseHead, mCacheInfo),
       NS_DISPATCH_NORMAL);
 
     return NS_OK;
@@ -2803,6 +2806,11 @@ NS_IMETHODIMP
 HttpChannelChild::GetCacheTokenFetchCount(int32_t *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
+
+  if (mCacheInfo) {
+    return mCacheInfo->GetCacheTokenFetchCount(_retval);
+  }
+
   if (!mCacheEntryAvailable && !mAltDataCacheEntryAvailable) {
     return NS_ERROR_NOT_AVAILABLE;
   }
@@ -2815,6 +2823,11 @@ NS_IMETHODIMP
 HttpChannelChild::GetCacheTokenExpirationTime(uint32_t *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
+
+  if (mCacheInfo) {
+    return mCacheInfo->GetCacheTokenExpirationTime(_retval);
+  }
+
   if (!mCacheEntryAvailable)
     return NS_ERROR_NOT_AVAILABLE;
 
@@ -2825,6 +2838,10 @@ HttpChannelChild::GetCacheTokenExpirationTime(uint32_t *_retval)
 NS_IMETHODIMP
 HttpChannelChild::GetCacheTokenCachedCharset(nsACString &_retval)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->GetCacheTokenCachedCharset(_retval);
+  }
+
   if (!mCacheEntryAvailable)
     return NS_ERROR_NOT_AVAILABLE;
 
@@ -2834,6 +2851,10 @@ HttpChannelChild::GetCacheTokenCachedCharset(nsACString &_retval)
 NS_IMETHODIMP
 HttpChannelChild::SetCacheTokenCachedCharset(const nsACString &aCharset)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->SetCacheTokenCachedCharset(aCharset);
+  }
+
   if (!mCacheEntryAvailable || !RemoteChannelExists())
     return NS_ERROR_NOT_AVAILABLE;
 
@@ -2847,6 +2868,10 @@ HttpChannelChild::SetCacheTokenCachedCharset(const nsACString &aCharset)
 NS_IMETHODIMP
 HttpChannelChild::IsFromCache(bool *value)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->IsFromCache(value);
+  }
+
   if (!mIsPending)
     return NS_ERROR_NOT_AVAILABLE;
 
@@ -2857,6 +2882,10 @@ HttpChannelChild::IsFromCache(bool *value)
 NS_IMETHODIMP
 HttpChannelChild::GetCacheEntryId(uint64_t *aCacheEntryId)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->GetCacheEntryId(aCacheEntryId);
+  }
+
   bool fromCache = false;
   if (NS_FAILED(IsFromCache(&fromCache)) ||
       !fromCache ||
@@ -2871,12 +2900,20 @@ HttpChannelChild::GetCacheEntryId(uint64_t *aCacheEntryId)
 NS_IMETHODIMP
 HttpChannelChild::GetCacheKey(nsISupports **cacheKey)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->GetCacheKey(cacheKey);
+  }
+
   NS_IF_ADDREF(*cacheKey = mCacheKey);
   return NS_OK;
 }
 NS_IMETHODIMP
 HttpChannelChild::SetCacheKey(nsISupports *cacheKey)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->SetCacheKey(cacheKey);
+  }
+
   ENSURE_CALLED_BEFORE_ASYNC_OPEN();
 
   mCacheKey = cacheKey;
@@ -2886,12 +2923,20 @@ HttpChannelChild::SetCacheKey(nsISupports *cacheKey)
 NS_IMETHODIMP
 HttpChannelChild::SetAllowStaleCacheContent(bool aAllowStaleCacheContent)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->SetAllowStaleCacheContent(aAllowStaleCacheContent);
+  }
+
   mAllowStaleCacheContent = aAllowStaleCacheContent;
   return NS_OK;
 }
 NS_IMETHODIMP
 HttpChannelChild::GetAllowStaleCacheContent(bool *aAllowStaleCacheContent)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->GetAllowStaleCacheContent(aAllowStaleCacheContent);
+  }
+
   NS_ENSURE_ARG(aAllowStaleCacheContent);
   *aAllowStaleCacheContent = mAllowStaleCacheContent;
   return NS_OK;
@@ -2901,6 +2946,11 @@ NS_IMETHODIMP
 HttpChannelChild::PreferAlternativeDataType(const nsACString & aType)
 {
   ENSURE_CALLED_BEFORE_ASYNC_OPEN();
+
+  if (mCacheInfo) {
+    return mCacheInfo->PreferAlternativeDataType(aType);
+  }
+
   mPreferredCachedAltDataType = aType;
   return NS_OK;
 }
@@ -2915,6 +2965,10 @@ HttpChannelChild::GetPreferredAlternativeDataType(nsACString & aType)
 NS_IMETHODIMP
 HttpChannelChild::GetAlternativeDataType(nsACString & aType)
 {
+  if (mCacheInfo) {
+    return mCacheInfo->GetAlternativeDataType(aType);
+  }
+
   // Must be called during or after OnStartRequest
   if (!mAfterOnStartRequestBegun) {
     return NS_ERROR_NOT_AVAILABLE;
@@ -2928,6 +2982,10 @@ NS_IMETHODIMP
 HttpChannelChild::OpenAlternativeOutputStream(const nsACString & aType, nsIOutputStream * *_retval)
 {
   MOZ_ASSERT(NS_IsMainThread(), "Main thread only");
+
+  if (mCacheInfo) {
+    return mCacheInfo->OpenAlternativeOutputStream(aType, _retval);
+  }
 
   if (!mIPCOpen) {
     return NS_ERROR_NOT_AVAILABLE;
@@ -3529,7 +3587,8 @@ HttpChannelChild::CancelOnMainThread(nsresult aRv)
 void
 HttpChannelChild::OverrideWithSynthesizedResponse(nsAutoPtr<nsHttpResponseHead>& aResponseHead,
                                                   nsIInputStream* aSynthesizedInput,
-                                                  InterceptStreamListener* aStreamListener)
+                                                  InterceptStreamListener* aStreamListener,
+                                                  nsICacheInfoChannel* aCacheInfoChannel)
 {
   mInterceptListener = aStreamListener;
 
@@ -3574,6 +3633,10 @@ HttpChannelChild::OverrideWithSynthesizedResponse(nsAutoPtr<nsHttpResponseHead>&
     return;
   }
 
+  if (aCacheInfoChannel) {
+    mCacheInfo = aCacheInfoChannel;
+  }
+
   rv = mSynthesizedResponsePump->AsyncRead(aStreamListener, nullptr);
   NS_ENSURE_SUCCESS_VOID(rv);
 
@@ -3600,9 +3663,11 @@ HttpChannelChild::ForceIntercepted(bool aPostRedirectChannelShouldIntercept,
 }
 
 void
-HttpChannelChild::ForceIntercepted(nsIInputStream* aSynthesizedInput)
+HttpChannelChild::ForceIntercepted(nsIInputStream* aSynthesizedInput,
+                                   nsICacheInfoChannel* aCacheInfo)
 {
   mSynthesizedInput = aSynthesizedInput;
+  mCacheInfo = aCacheInfo;
   mSynthesizedResponse = true;
   mRedirectingForSubsequentSynthesizedResponse = true;
 }
