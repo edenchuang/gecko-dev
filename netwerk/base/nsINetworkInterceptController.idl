@@ -6,6 +6,7 @@
 #include "nsISupports.idl"
 #include "nsIContentPolicy.idl"
 
+interface nsICacheInfoChannel;
 interface nsIChannel;
 interface nsIConsoleReportCollector;
 interface nsIOutputStream;
@@ -61,7 +62,8 @@ interface nsIInterceptedChannel : nsISupports
      * this response originates from; an empty string will cause the original
      * intercepted request's URL to be used instead.
      */
-    void finishSynthesizedResponse(in ACString finalURLSpec);
+    void finishSynthesizedResponse(in ACString finalURLSpec,
+                                   in nsICacheInfoChannel channel);
 
     /**
      * Cancel the pending intercepted request.

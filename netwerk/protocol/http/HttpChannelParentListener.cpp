@@ -318,7 +318,7 @@ public:
   {
     // The URL passed as an argument here doesn't matter, since the child will
     // receive a redirection notification as a result of this synthesized response.
-    mChannel->FinishSynthesizedResponse(EmptyCString());
+    mChannel->FinishSynthesizedResponse(EmptyCString(), nullptr);
     return NS_OK;
   }
 };

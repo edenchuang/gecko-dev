@@ -283,7 +283,8 @@ InterceptedChannelContent::SynthesizeHeader(const nsACString& aName, const nsACS
 }
 
 NS_IMETHODIMP
-InterceptedChannelContent::FinishSynthesizedResponse(const nsACString& aFinalURLSpec)
+InterceptedChannelContent::FinishSynthesizedResponse(const nsACString& aFinalURLSpec,
+                                                     nsICacheInfoChannel* aCacheInfoChannel)
 {
   if (NS_WARN_IF(mClosed)) {
     return NS_ERROR_NOT_AVAILABLE;
@@ -316,12 +317,13 @@ InterceptedChannelContent::FinishSynthesizedResponse(const nsACString& aFinalURL
   bool equal = false;
   originalURI->Equals(responseURI, &equal);
   if (!equal) {
-    mChannel->ForceIntercepted(mSynthesizedInput);
+    mChannel->ForceIntercepted(mSynthesizedInput, aCacheInfoChannel);
     mChannel->BeginNonIPCRedirect(responseURI, *mSynthesizedResponseHead.ptr());
   } else {
     mChannel->OverrideWithSynthesizedResponse(mSynthesizedResponseHead.ref(),
                                               mSynthesizedInput,
-                                              mStreamListener);
+                                              mStreamListener,
+                                              aCacheInfoChannel);
   }
 
   mResponseBody = nullptr;
