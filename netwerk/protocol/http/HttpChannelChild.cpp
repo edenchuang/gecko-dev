@@ -217,6 +217,35 @@ HttpChannelChild::~HttpChannelChild()
   ReleaseMainThreadOnlyReferences();
 }
 
+// XXX: This is specialized version of ProxyReleaseRunnable of HttpChannelChild,
+// which also owns a RefPtr for InterceptListener. Should find a better type for
+// ProxyReleaseRunnable to hold the members to be released on the main thread
+// without hitting assertions.
+class ProxyReleaseRunnableForHttpChannelChild final : public mozilla::Runnable
+{
+public:
+  ProxyReleaseRunnableForHttpChannelChild(nsTArray<nsCOMPtr<nsISupports>>&& aDoomed,
+                           RefPtr<InterceptStreamListener> aInterceptListener)
+    : Runnable("ProxyReleaseRunnablePlus")
+    , mDoomed(Move(aDoomed))
+    , mInterceptListener(Move(aInterceptListener))
+  {}
+
+  NS_IMETHOD
+  Run() override
+  {
+    mDoomed.Clear();
+    mInterceptListener = nullptr;
+    return NS_OK;
+  }
+
+private:
+  virtual ~ProxyReleaseRunnableForHttpChannelChild() {}
+
+  nsTArray<nsCOMPtr<nsISupports>> mDoomed;
+  RefPtr<InterceptStreamListener> mInterceptListener;
+};
+
 void
 HttpChannelChild::ReleaseMainThreadOnlyReferences()
 {
@@ -229,15 +258,12 @@ HttpChannelChild::ReleaseMainThreadOnlyReferences()
   nsTArray<nsCOMPtr<nsISupports>> arrayToRelease;
   arrayToRelease.AppendElement(mCacheKey.forget());
   arrayToRelease.AppendElement(mRedirectChannelChild.forget());
-
-  // To solve multiple inheritence of nsISupports in InterceptStreamListener
-  already_AddRefed<nsIStreamListener> listener = mInterceptListener.forget();
-  arrayToRelease.AppendElement(listener.take());
-
   arrayToRelease.AppendElement(mInterceptedRedirectListener.forget());
   arrayToRelease.AppendElement(mInterceptedRedirectContext.forget());
 
-  NS_DispatchToMainThread(new ProxyReleaseRunnable(Move(arrayToRelease)));
+  NS_DispatchToMainThread(
+      new ProxyReleaseRunnableForHttpChannelChild(Move(arrayToRelease),
+                                                  Move(mInterceptListener)));
 }
 //-----------------------------------------------------------------------------
 // HttpChannelChild::nsISupports
