@@ -217,6 +217,31 @@ HttpChannelChild::~HttpChannelChild()
   ReleaseMainThreadOnlyReferences();
 }
 
+class ProxyReleaseRunnablePlus final : public mozilla::Runnable
+{
+public:
+  ProxyReleaseRunnablePlus(nsTArray<nsCOMPtr<nsISupports>>&& aDoomed,
+                           RefPtr<InterceptStreamListener> aInterceptListener)
+    : Runnable("ProxyReleaseRunnablePlus")
+    , mDoomed(Move(aDoomed))
+    , mInterceptListener(Move(aInterceptListener))
+  {}
+
+  NS_IMETHOD
+  Run() override
+  {
+    mDoomed.Clear();
+    mInterceptListener = nullptr;
+    return NS_OK;
+  }
+
+private:
+  virtual ~ProxyReleaseRunnablePlus() {}
+
+  nsTArray<nsCOMPtr<nsISupports>> mDoomed;
+  RefPtr<InterceptStreamListener> mInterceptListener;
+};
+
 void
 HttpChannelChild::ReleaseMainThreadOnlyReferences()
 {
@@ -229,15 +254,12 @@ HttpChannelChild::ReleaseMainThreadOnlyReferences()
   nsTArray<nsCOMPtr<nsISupports>> arrayToRelease;
   arrayToRelease.AppendElement(mCacheKey.forget());
   arrayToRelease.AppendElement(mRedirectChannelChild.forget());
-
-  // To solve multiple inheritence of nsISupports in InterceptStreamListener
-  already_AddRefed<nsIStreamListener> listener = mInterceptListener.forget();
-  arrayToRelease.AppendElement(listener.take());
-
   arrayToRelease.AppendElement(mInterceptedRedirectListener.forget());
   arrayToRelease.AppendElement(mInterceptedRedirectContext.forget());
 
-  NS_DispatchToMainThread(new ProxyReleaseRunnable(Move(arrayToRelease)));
+  NS_DispatchToMainThread(
+      new ProxyReleaseRunnablePlus(Move(arrayToRelease),
+                                   Move(mInterceptListener)));
 }
 //-----------------------------------------------------------------------------
 // HttpChannelChild::nsISupports
