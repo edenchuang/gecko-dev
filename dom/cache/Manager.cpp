@@ -859,6 +859,7 @@ private:
                         e.mRequestStream ? &e.mRequestBodyId : nullptr,
                         e.mResponse,
                         e.mResponseStream ? &e.mResponseBodyId : nullptr,
+                        e.mResponseAlternativeStream ? &e.mResponseAlternativeBodyId : nullptr,
                         mDeletedBodyIdList, &deletedPaddingSize);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         DoResolve(rv);

@@ -36,7 +36,7 @@ namespace db {
 const int32_t kFirstShippedSchemaVersion = 15;
 namespace {
 // Update this whenever the DB schema is changed.
-const int32_t kLatestSchemaVersion = 26;
+const int32_t kLatestSchemaVersion = 27;
 // ---------
 // The following constants define the SQL schema.  These are defined in the
 // same order the SQL should be executed in CreateOrMigrateSchema().  They are
@@ -103,7 +103,9 @@ const char* const kTableEntries =
     "request_referrer_policy INTEGER NOT NULL, "
     "request_integrity TEXT NOT NULL, "
     "request_url_fragment TEXT NOT NULL, "
-    "response_padding_size INTEGER NULL "
+    "response_padding_size INTEGER NULL, "
+    "response_alternative_type TEXT NULL, "
+    "response_alternative_body_id TEXT NULL "
     // New columns must be added at the end of table to migrate and
     // validate properly.
   ")";
@@ -334,7 +336,8 @@ static nsresult InsertEntry(mozIStorageConnection* aConn, CacheId aCacheId,
                             const CacheRequest& aRequest,
                             const nsID* aRequestBodyId,
                             const CacheResponse& aResponse,
-                            const nsID* aResponseBodyId);
+                            const nsID* aResponseBodyId,
+                            const nsID* aResponseAlternativeBodyId);
 static nsresult ReadResponse(mozIStorageConnection* aConn, EntryId aEntryId,
                              SavedResponse* aSavedResponseOut);
 static nsresult ReadRequest(mozIStorageConnection* aConn, EntryId aEntryId,
@@ -831,6 +834,7 @@ CachePut(mozIStorageConnection* aConn, CacheId aCacheId,
          const nsID* aRequestBodyId,
          const CacheResponse& aResponse,
          const nsID* aResponseBodyId,
+         const nsID* aResponseAlternativeBodyId,
          nsTArray<nsID>& aDeletedBodyIdListOut,
          int64_t* aDeletedPaddingSizeOut)
 {
@@ -851,7 +855,7 @@ CachePut(mozIStorageConnection* aConn, CacheId aCacheId,
   if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
 
   rv = InsertEntry(aConn, aCacheId, aRequest, aRequestBodyId, aResponse,
-                   aResponseBodyId);
+                   aResponseBodyId, aResponseAlternativeBodyId);
   if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
 
   // Delete the security values after doing the insert to avoid churning
@@ -1705,7 +1709,8 @@ InsertEntry(mozIStorageConnection* aConn, CacheId aCacheId,
             const CacheRequest& aRequest,
             const nsID* aRequestBodyId,
             const CacheResponse& aResponse,
-            const nsID* aResponseBodyId)
+            const nsID* aResponseBodyId,
+            const nsID* aResponseAlternativeBodyId)
 {
   MOZ_ASSERT(!NS_IsMainThread());
   MOZ_DIAGNOSTIC_ASSERT(aConn);
@@ -1748,6 +1753,8 @@ InsertEntry(mozIStorageConnection* aConn, CacheId aCacheId,
       "response_status_text, "
       "response_headers_guard, "
       "response_body_id, "
+      "response_alternative_type, "
+      "response_alternative_body_id, "
       "response_security_info_id, "
       "response_principal_info, "
       "response_padding_size, "
@@ -1774,6 +1781,8 @@ InsertEntry(mozIStorageConnection* aConn, CacheId aCacheId,
       ":response_status_text, "
       ":response_headers_guard, "
       ":response_body_id, "
+      ":response_alternative_body_type, "
+      ":response_alternative_body_id, "
       ":response_security_info_id, "
       ":response_principal_info, "
       ":response_padding_size, "
@@ -1864,6 +1873,10 @@ InsertEntry(mozIStorageConnection* aConn, CacheId aCacheId,
   if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
 
   rv = BindId(state, NS_LITERAL_CSTRING("response_body_id"), aResponseBodyId);
+  if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
+
+  rv = BindId(state, NS_LITERAL_CSTRING("response_alternative_body_id"),
+              aResponseAlternativeBodyId);
   if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
 
   if (aResponse.channelInfo().securityInfo().IsEmpty()) {
@@ -2622,6 +2635,7 @@ nsresult MigrateFrom22To23(mozIStorageConnection* aConn, bool& aRewriteSchema);
 nsresult MigrateFrom23To24(mozIStorageConnection* aConn, bool& aRewriteSchema);
 nsresult MigrateFrom24To25(mozIStorageConnection* aConn, bool& aRewriteSchema);
 nsresult MigrateFrom25To26(mozIStorageConnection* aConn, bool& aRewriteSchema);
+nsresult MigrateFrom26To27(mozIStorageConnection* aConn, bool& aRewriteSchema);
 // Configure migration functions to run for the given starting version.
 Migration sMigrationList[] = {
   Migration(15, MigrateFrom15To16),
@@ -2635,6 +2649,7 @@ Migration sMigrationList[] = {
   Migration(23, MigrateFrom23To24),
   Migration(24, MigrateFrom24To25),
   Migration(25, MigrateFrom25To26),
+  Migration(26, MigrateFrom26To27),
 };
 uint32_t sMigrationListLength = sizeof(sMigrationList) / sizeof(Migration);
 nsresult
@@ -3191,6 +3206,26 @@ nsresult MigrateFrom25To26(mozIStorageConnection* aConn, bool& aRewriteSchema)
   if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
 
   rv = aConn->SetSchemaVersion(26);
+  if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
+
+  aRewriteSchema = true;
+
+  return rv;
+}
+
+nsresult MigrateFrom26To27(mozIStorageConnection* aConn, bool& aRewriteSchema)
+{
+  MOZ_ASSERT(!NS_IsMainThread());
+  MOZ_DIAGNOSTIC_ASSERT(aConn);
+
+  nsresult rv = aConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
+    "ALTER TABLE entries "
+    "ADD COLUMN response_alternative_body_type TEXT NULL, "
+    "ADD COLUMN response_alternative_body_id TEXT NULL"
+  ));
+  if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
+
+  rv = aConn->SetSchemaVersion(27);
   if (NS_WARN_IF(NS_FAILED(rv))) { return rv; }
 
   aRewriteSchema = true;

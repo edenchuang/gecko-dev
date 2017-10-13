@@ -78,6 +78,7 @@ CachePut(mozIStorageConnection* aConn, CacheId aCacheId,
          const nsID* aRequestBodyId,
          const CacheResponse& aResponse,
          const nsID* aResponseBodyId,
+         const nsID* aResponseAlternativeBodyId,
          nsTArray<nsID>& aDeletedBodyIdListOut,
          int64_t* aDeletedPaddingSizeOut);
 
