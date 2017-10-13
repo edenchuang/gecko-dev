@@ -86,6 +86,8 @@ struct CacheResponse
   HeadersEntry[] headers;
   HeadersGuardEnum headersGuard;
   CacheReadStreamOrVoid body;
+  nsCString alternativeDataType;
+  CacheReadStreamOrVoid alternativeBody;
   IPCChannelInfo channelInfo;
   OptionalPrincipalInfo principalInfo;
   uint32_t paddingInfo;
